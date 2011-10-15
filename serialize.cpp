@@ -13,6 +13,8 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
+#include <boost/version.hpp>
+
 class TestClass
 {
 private:
@@ -44,7 +46,9 @@ public:
 
 };
 
+#if BOOST_VERSION == 103301
 BOOST_CLASS_TRACKING(TestClass, boost::serialization::track_never);
+#endif
 
 int main(int argc, char* argv[])
 {
