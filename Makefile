@@ -29,6 +29,7 @@ clean:
 
 distclean: clean
 	rm -rf .depend
+	rm -rf project
 dist:
 	rm -rf project project.zip
 	mkdir -p project
