@@ -44,6 +44,8 @@ public:
 
 };
 
+BOOST_CLASS_TRACKING(TestClass, boost::serialization::track_never);
+
 int main(int argc, char* argv[])
 {
     std::ofstream outFile("file.dat");
