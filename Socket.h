@@ -31,8 +31,8 @@ private:
     
     //Functions:
 
-    int send();
-    int recv();
+    int output();
+    int input();
 
 
 public:
@@ -46,13 +46,15 @@ public:
     {
         boost::archive::binary_oarchive boa(myBuf);
         boa << t;
-
+        
+        output();
         return *this;
     }
 
     template <class T>
     Socket &operator>> (T &t)
     {
+        input();
         boost::archive::binary_iarchive bia(myBuf);
 
         bia >> t;

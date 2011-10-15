@@ -8,7 +8,7 @@ extern "C"
 #   include <netdb.h>
 
 #   include <errno.h>
-//#   include <stdio.h>
+#   include <string.h>
 }
 
 
@@ -44,7 +44,7 @@ Socket::Socket(std::string host, uint16_t port)
             return;
         }
 
-        if( connect( sockFd, &servaddr, sizeof(servaddr)) < 0)
+        if( connect( sockFd, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0)
         {
             std::cerr << "Failed to connect to socket" << std::endl;
             close(sockFd);
@@ -63,15 +63,30 @@ Socket::~Socket()
     }
 }
 
-int Socket::send()
+int Socket::output()
 {
+    const char *buffer = myBuf.str().c_str();
 
-    return -1;
+    int retVal = send(sockFd, buffer, strlen(buffer), 0);
+
+    if(retVal == strlen(buffer)){
+        myBuf.str("");
+    }
+
+    return retVal;
 }
 
-int Socket::recv()
+int Socket::input()
 {
+    char buffer[4096];
 
-    return -1;
+    int retVal = read(sockFd, buffer, 4096);
+
+    if(retVal > 0)
+    {
+        myBuf.str(buffer);
+    }
+    
+    return retVal;
 }
 

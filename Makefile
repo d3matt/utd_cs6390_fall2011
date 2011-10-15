@@ -20,7 +20,7 @@ main: main.o
 	@ echo LD $@
 	$(HIDE) $(LD) -o $@ $^
 
-serialize: serialize.o
+serialize: serialize.o Socket.o
 	@ echo LD $@
 	$(HIDE) $(LD) -lboost_serialization -o $@ $^
 

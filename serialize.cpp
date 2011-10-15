@@ -7,6 +7,7 @@
 /* STD headers */
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 /* Boost headers */
@@ -14,6 +15,9 @@
 #include <boost/archive/text_iarchive.hpp>
 
 #include <boost/version.hpp>
+
+/* My Headers */
+#include "Socket.h"
 
 class TestClass
 {
@@ -46,31 +50,17 @@ public:
 
 };
 
-#if BOOST_VERSION == 103301
-BOOST_CLASS_TRACKING(TestClass, boost::serialization::track_never);
-#endif
-
 int main(int argc, char* argv[])
 {
-    std::ofstream outFile("file.dat");
-
     TestClass test(4, 8.43, "Hello World!");
 
-    /* Neat way of destroying the archive */
-    {
-        boost::archive::text_oarchive outArchive(outFile);
-        outArchive << test;
-    }
+    Socket sock;
+
+    sock << test;
 
     TestClass inTest;
 
-    /* Another one! */
-    {
-        std::ifstream inFile("file.dat");
-        boost::archive::text_iarchive inArchive(inFile);
-
-        inArchive >> inTest;
-    }
+    sock >> inTest;
 
     std::cout << "myInt: " << inTest.myInt << std::endl;
     std::cout << "myDouble: " << inTest.myDouble << std::endl;
