@@ -50,11 +50,15 @@ public:
 
 };
 
+#if BOOST_VERSION == 103301
+BOOST_CLASS_TRACKING(TestClass, boost::serialization::track_never);
+#endif /* BOOST_VERSION */
+
 int main(int argc, char* argv[])
 {
     TestClass test(4, 8.43, "Hello World!");
 
-    Socket sock;
+    Socket sock("localhost", 12544);
 
     sock << test;
 

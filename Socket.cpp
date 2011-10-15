@@ -69,7 +69,8 @@ int Socket::output()
 
     int retVal = send(sockFd, buffer, strlen(buffer), 0);
 
-    if(retVal == strlen(buffer)){
+    /* I know this is bad...gets rid of a warning */
+    if(retVal == (int)strlen(buffer)){
         myBuf.str("");
     }
 
@@ -80,7 +81,7 @@ int Socket::input()
 {
     char buffer[4096];
 
-    int retVal = read(sockFd, buffer, 4096);
+    int retVal = recv(sockFd, buffer, 4096, 0);
 
     if(retVal > 0)
     {

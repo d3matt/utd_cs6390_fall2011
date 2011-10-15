@@ -1,3 +1,4 @@
+CC=gcc
 CXX=g++
 LD=g++
 CFLAGS=-Wall -g
@@ -8,12 +9,17 @@ HIDE:= @
 endif
 
 
-default: main serialize
+default: main serialize echoserv
 
 .cpp.o:
 	@ mkdir -p .depend
 	@ echo CXX $@
 	$(HIDE) $(CXX) $(CFLAGS) -c -o $@ -MMD -MF $(@:%.o=.depend/%.d) $(firstword $^)
+
+.c.o:
+	@ mkdir -p .depend
+	@ echo CC $@
+	$(HIDE) $(CC) $(CFLAGS) -c -o $@ -MMD -MF $(@:%.o=.depend/%.d) $(firstword $^)
 
 
 main: main.o
@@ -24,8 +30,11 @@ serialize: serialize.o Socket.o
 	@ echo LD $@
 	$(HIDE) $(LD) -lboost_serialization -o $@ $^
 
+echoserv: echoserv.o
+	$(HIDE) $(LD) -o $@ $^
+
 clean:
-	rm -f *.o main serialize file.dat
+	rm -f *.o main serialize echoserv
 
 distclean: clean
 	rm -rf .depend

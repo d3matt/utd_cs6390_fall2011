@@ -1,3 +1,5 @@
 .depend
 *.o
+*.swp
+*.swo
 main

@@ -11,14 +11,10 @@ extern "C"
 #include <string>
 
 /* Boost headers */
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
 
 #include <boost/version.hpp>
-
-#if BOOST_VERSION == 103301
-BOOST_CLASS_TRACKING(TestClass, boost::serialization::track_never);
-#endif /* BOOST_VERSION */
 
 class Socket : public std::ostream
 {
@@ -44,7 +40,7 @@ public:
     template <class T>
     Socket &operator<< (T &t)
     {
-        boost::archive::binary_oarchive boa(myBuf);
+        boost::archive::text_oarchive boa(myBuf);
         boa << t;
         
         output();
@@ -55,7 +51,7 @@ public:
     Socket &operator>> (T &t)
     {
         input();
-        boost::archive::binary_iarchive bia(myBuf);
+        boost::archive::text_iarchive bia(myBuf);
 
         bia >> t;
 
