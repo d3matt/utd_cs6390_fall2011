@@ -8,7 +8,7 @@ HIDE:= @
 endif
 
 
-default: main
+default: main serialize
 
 .cpp.o:
 	@ mkdir -p .depend
@@ -20,14 +20,20 @@ main: main.o
 	@ echo LD $@
 	$(HIDE) $(LD) -o $@ $^
 
-clean:
-	rm -f *.o client server
+serialize: serialize.o
+	@ echo LD $@
+	$(HIDE) $(LD) -lboost_serialization -o $@ $^
 
+clean:
+	rm -f *.o main serialize file.dat
+
+distclean: clean
+	rm -rf .depend
 dist:
-	rm -rf mjs010200 mjs010200.zip
-	mkdir -p mjs010200
-	cp *.cpp *.h README Makefile mjs010200
-	zip mjs010200.zip mjs010200/*
+	rm -rf project project.zip
+	mkdir -p project
+	cp *.cpp *.h README Makefile project
+	zip project.zip project/*
 
 
 -include .depend/*.d
