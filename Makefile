@@ -31,6 +31,7 @@ serialize: serialize.o Socket.o
 	$(HIDE) $(LD) -lboost_serialization -o $@ $^
 
 echoserv: echoserv.o
+	@ echo LD $@
 	$(HIDE) $(LD) -o $@ $^
 
 clean:
