@@ -90,6 +90,7 @@ int main(int argc, char *argv[]) {
         to client requests and echo input  */
 
     while ( 1 ) {
+        int bytes;
 
 	/*  Wait for a connection, then accept() it  */
 
@@ -102,8 +103,8 @@ int main(int argc, char *argv[]) {
 	/*  Retrieve an input line from the connected socket
 	    then simply write it back to the same socket.     */
 
-        recv(conn_s, buffer, MAX_LINE-1, 0);
-        send(conn_s, buffer, MAX_LINE-1, 0);
+        bytes = recv(conn_s, buffer, MAX_LINE-1, 0);
+        send(conn_s, buffer, bytes, 0);
 
 
 	/*  Close the connected socket  */

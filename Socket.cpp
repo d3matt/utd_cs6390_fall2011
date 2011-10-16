@@ -19,11 +19,9 @@ Socket::Socket()
     Socket("", 12543);
 }
 
-Socket::Socket(std::string host, uint16_t port)
+Socket::Socket(std::string host, uint16_t port) :
+    connected(false), sockFd(-1)
 {
-    connected = false;
-    sockFd = -1;
-
     if(host != "")
     {
         struct hostent      *h_server;
@@ -65,14 +63,25 @@ Socket::~Socket()
 
 int Socket::output()
 {
-    const char *buffer = myBuf.str().c_str();
+    int length;
+    char * buffer;
 
-    int retVal = send(sockFd, buffer, strlen(buffer), 0);
+    myBuf.seekg(0, std::ios::end);
+    length = myBuf.tellg();
+    myBuf.seekg(0, std::ios::beg);
 
-    /* I know this is bad...gets rid of a warning */
-    if(retVal == (int)strlen(buffer)){
-        myBuf.str("");
+    buffer = new char[length];
+
+    myBuf.get(buffer, length);
+    
+    int retVal = send(sockFd, buffer, length, 0);
+
+    if(retVal == length){
+        myBuf.ignore();
+        myBuf.seekg(0, std::ios::beg);
     }
+
+    delete[] buffer;
 
     return retVal;
 }
