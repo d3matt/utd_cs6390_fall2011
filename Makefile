@@ -8,6 +8,14 @@ ifeq ($(HIDE),)
 HIDE:= @
 endif
 
+ifeq ($(shell uname -m),x86_64)
+LIBDIR:=lib64
+else
+LIBDIR:=lib
+endif
+
+BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_serialization.a --end-group
+
 
 default: main serialize echoserv
 
@@ -28,7 +36,7 @@ main: main.o
 
 serialize: serialize.o Socket.o
 	@ echo LD $@
-	$(HIDE) $(LD) -lboost_serialization -o $@ $^
+	$(HIDE) $(LD) -o $@ $^ $(BOOSTFLAGS)
 
 echoserv: echoserv.o
 	@ echo LD $@
