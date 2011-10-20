@@ -2,6 +2,7 @@
 *.o
 *.swp
 *.swo
+*.exe
 main
 echoserv
 serialize
