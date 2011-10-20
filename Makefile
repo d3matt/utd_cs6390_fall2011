@@ -14,7 +14,14 @@ else
 LIBDIR:=lib
 endif
 
+BOOSTFLAGS=
+ifeq ($(shell uname -s),Linux)
 BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_serialization.a --end-group
+endif
+
+ifeq ($(shell uname -s),CYGWIN_NT-5.1)
+BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_*.a --end-group
+endif
 
 
 default: main serialize echoserv
@@ -39,6 +46,10 @@ serialize: serialize.o Socket.o
 	$(HIDE) $(LD) -o $@ $^ $(BOOSTFLAGS)
 
 echoserv: echoserv.o
+	@ echo LD $@
+	$(HIDE) $(LD) -o $@ $^
+
+router: router.o
 	@ echo LD $@
 	$(HIDE) $(LD) -o $@ $^
 
