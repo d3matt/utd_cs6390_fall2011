@@ -5,9 +5,11 @@
 #include <iostream>
 #include <vector>
 
+#include "utils.h"
+
 
 using namespace std;
-void usage(const char * errmsg=NULL, bool exit=false, int rc=1)
+void usage(const char * errmsg=NULL, bool exit=true, int rc=1)
 {
     if(errmsg)
         cerr << "USAGE ERROR: " << errmsg << endl << endl;
@@ -29,18 +31,28 @@ int main(int argc, char ** argv)
     if(argc == 1)
         usage(NULL, true, 0);
     else if(argc < 7)
-        usage("invalid number of arguments", true, 1);
+        usage("invalid number of arguments");
 
     uint32_t AS;
+    uint32_t routerID;
+    string configFile;
 
+    if(string_to_int(argv[1], AS) == NULL)
+        usage("First argument must be an integer");
+    if(!valid_AS(AS))
+        usage("AS # must be between 0 and 9 and must match a configured AS");
 
-    AS=strtoul(argv[1], NULL, 10);
+    if(string_to_int(argv[2], routerID) == NULL)
+        usage("Second argument must be an integer");
+    if(!valid_router(routerID))
+        usage("routerID # must be between 0 and 9");
 
+    configFile=string(argv[3]);
 
     cout << "CONFIG: " << endl;
     cout << "               AS: " << AS << endl;
-    cerr << "         routerID: " << endl;
-    cerr << "       configfile: " << endl;
+    cerr << "         routerID: " << routerID << endl;
+    cerr << "       configfile: " << configFile << endl;
     cerr << "       neighborAS: " << endl;
     cerr << " neighborrouterID: " << endl;
     cerr << " net1, net1, etc.: " << endl;

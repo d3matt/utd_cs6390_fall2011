@@ -53,7 +53,7 @@ RREQ_test: RREQ.o RREQ_test.o Socket.o
 	@ echo LD $@
 	$(HIDE) $(LD) -o $@ $^ $(BOOSTFLAGS)
 
-router: router.o
+router: router.o utils.o
 	@ echo LD $@
 	$(HIDE) $(LD) -o $@ $^
 
