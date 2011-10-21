@@ -3,6 +3,7 @@
 *.swp
 *.swo
 *.exe
+*.map
 main
 echoserv
 serialize
