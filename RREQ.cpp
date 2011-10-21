@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <string.h>
 
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
