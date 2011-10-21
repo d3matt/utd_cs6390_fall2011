@@ -2,7 +2,7 @@ CC=gcc
 CXX=g++
 LD=g++
 CFLAGS=-Wall -g
-LDFLAGS=
+LDFLAGS=-Wl,-Map,$@.map 
 
 ifeq ($(HIDE),)
 HIDE:= @
@@ -16,15 +16,16 @@ endif
 
 BOOSTFLAGS=
 ifeq ($(shell uname -s),Linux)
-BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_serialization.a --end-group
+BOOSTFLAGS=-Wl,--start-group /usr/$(LIBDIR)/libboost_serialization.a -Wl,--end-group
 endif
 
 ifeq ($(shell uname -s),CYGWIN_NT-5.1)
 BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_*.a --end-group
 endif
 
+BINLIST=main serialize echoserv RREQ_test router
 
-default: main serialize echoserv RREQ_test
+default: $(BINLIST)
 
 .cpp.o:
 	@ mkdir -p .depend
@@ -39,30 +40,31 @@ default: main serialize echoserv RREQ_test
 
 main: main.o
 	@ echo LD $@
-	$(HIDE) $(LD) -o $@ $^
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
 serialize: serialize.o Socket.o
 	@ echo LD $@
-	$(HIDE) $(LD) -o $@ $^ $(BOOSTFLAGS)
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
 
 echoserv: echoserv.o
 	@ echo LD $@
-	$(HIDE) $(LD) -o $@ $^
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
 RREQ_test: RREQ.o RREQ_test.o Socket.o
 	@ echo LD $@
-	$(HIDE) $(LD) -o $@ $^ $(BOOSTFLAGS)
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
 
 router: router.o utils.o
 	@ echo LD $@
-	$(HIDE) $(LD) -o $@ $^
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
 clean:
-	rm -f *.o main serialize echoserv RREQ_test
+	rm -f *.map *.o $(BINLIST)
 
 distclean: clean
 	rm -rf .depend
 	rm -rf project
+
 dist:
 	rm -rf project project.zip
 	mkdir -p project
