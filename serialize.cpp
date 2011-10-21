@@ -48,6 +48,19 @@ public:
     double myDouble;
     std::string myString;
 
+    friend std::ostream & operator<< (std::ostream &ostr, TestClass *tst)
+    {
+        ostr << tst->myInt << " " << tst->myDouble << " " << tst->myString;
+        return ostr;
+    }
+
+    friend void operator>> (std::string &str, TestClass *tst)
+    {
+        tst->myInt = 0xdeadbeef;
+        tst->myDouble = -1.0;
+        tst->myString = str;
+    }
+
 };
 
 #if BOOST_VERSION == 103301
@@ -57,19 +70,19 @@ BOOST_CLASS_TRACKING(TestClass, boost::serialization::track_never);
 int main(int argc, char* argv[])
 {
     TestClass test(4, 8.43, "Hello World!");
-
+/*
     Socket sock("localhost", 12544);
 
-    sock << test;
+    sock << &test;
 
     TestClass inTest;
 
-    sock >> inTest;
+    sock >> &inTest;
 
     std::cout << "myInt: " << inTest.myInt << std::endl;
     std::cout << "myDouble: " << inTest.myDouble << std::endl;
     std::cout << "myString: " << inTest.myString << std::endl;
-
+*/
     return 0;
 }
     

@@ -17,7 +17,7 @@ endif
 BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_serialization.a --end-group
 
 
-default: main serialize echoserv
+default: main serialize echoserv RREQ_test
 
 .cpp.o:
 	@ mkdir -p .depend
@@ -42,8 +42,12 @@ echoserv: echoserv.o
 	@ echo LD $@
 	$(HIDE) $(LD) -o $@ $^
 
+RREQ_test: RREQ.o RREQ_test.o Socket.o
+	@ echo LD $@
+	$(HIDE) $(LD) -o $@ $^ $(BOOSTFLAGS)
+
 clean:
-	rm -f *.o main serialize echoserv
+	rm -f *.o main serialize echoserv RREQ_test
 
 distclean: clean
 	rm -rf .depend

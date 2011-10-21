@@ -36,23 +36,19 @@ public:
     ~Socket();
     
     template <class T>
-    Socket &operator<< (T &t)
+    Socket &operator<< (T *t)
     {
-        boost::archive::text_oarchive boa(myBuf);
-        boa << t;
-        
+        myBuf << t;
         output();
         return *this;
     }
 
     template <class T>
-    Socket &operator>> (T &t)
+    Socket &operator>> (T *t)
     {
         input();
-        boost::archive::text_iarchive bia(myBuf);
 
-        bia >> t;
-
+        myBuf.str() >> t;
         return *this;
     }
 

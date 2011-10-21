@@ -64,24 +64,19 @@ Socket::~Socket()
 int Socket::output()
 {
     int length;
-    char * buffer;
+    char buffer[1024];
 
-    myBuf.seekg(0, std::ios::end);
-    length = myBuf.tellg();
-    myBuf.seekg(0, std::ios::beg);
+    length = myBuf.str().length();
 
-    buffer = new char[length];
+    const char *str = myBuf.str().c_str();
+    memcpy(buffer, str, length);
 
-    myBuf.get(buffer, length);
-    
     int retVal = send(sockFd, buffer, length, 0);
 
     if(retVal == length){
         myBuf.ignore();
         myBuf.seekg(0, std::ios::beg);
     }
-
-    delete[] buffer;
 
     return retVal;
 }

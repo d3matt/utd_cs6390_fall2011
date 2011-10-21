@@ -104,6 +104,7 @@ int main(int argc, char *argv[]) {
 	    then simply write it back to the same socket.     */
 
         bytes = recv(conn_s, buffer, MAX_LINE-1, 0);
+        printf("Received: %s\n", buffer);
         send(conn_s, buffer, bytes, 0);
 
 
