@@ -13,6 +13,9 @@ PCEconfig::PCEconfig(const char* filename)
     string      line;
 
     infile.open(filename);
+    if(!infile.is_open())
+        throw PCEexception();
+
     while (1) {
         getline(infile, line);
         if(!infile.good())

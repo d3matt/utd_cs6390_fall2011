@@ -34,8 +34,9 @@ int main(int argc, char ** argv)
     else if(argc < 7)
         usage("invalid number of arguments");
 
-    uint32_t AS;
-    uint32_t routerID;
+    uint32_t    AS;
+    uint32_t    routerID;
+    uint32_t    neighborAS;
     PCEconfig * pConfig;
 
     if(string_to_int(argv[1], AS) == NULL)
@@ -49,6 +50,10 @@ int main(int argc, char ** argv)
         usage("routerID # must be between 0 and 9");
 
     pConfig=new PCEconfig(argv[3]);
+
+    if(string_to_int(argv[4], routerID) == NULL)
+        usage("Fourth argument must be an integer");
+
 
     cout << "CONFIG: " << endl;
     cout << "                  AS: " << AS << endl;

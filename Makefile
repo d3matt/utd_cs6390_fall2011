@@ -1,7 +1,7 @@
 CC=gcc
 CXX=g++
 LD=g++
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g -fexceptions
 LDFLAGS=-Wl,-Map,$@.map 
 
 ifeq ($(HIDE),)

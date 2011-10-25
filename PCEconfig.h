@@ -19,4 +19,12 @@ private:
 public:
     PCEconfig(const char * filename);
     friend ostream& operator<< (ostream& out, PCEconfig *c);
+
+    class PCEexception: public exception
+    {
+        virtual const char* what() const throw()
+        {
+            return "Configfile invalid";
+        }
+    };
 };
