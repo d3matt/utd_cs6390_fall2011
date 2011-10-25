@@ -37,6 +37,7 @@ int main(int argc, char ** argv)
     uint32_t    AS;
     uint32_t    routerID;
     uint32_t    neighborAS;
+    uint32_t    neighborrouterID;
     PCEconfig * pConfig;
 
     if(string_to_int(argv[1], AS) == NULL)
@@ -51,16 +52,19 @@ int main(int argc, char ** argv)
 
     pConfig=new PCEconfig(argv[3]);
 
-    if(string_to_int(argv[4], routerID) == NULL)
+    if(string_to_int(argv[4], neighborAS) == NULL)
         usage("Fourth argument must be an integer");
+
+    if(string_to_int(argv[5], neighborrouterID) == NULL)
+        usage("Fifth argument must be an integer");
 
 
     cout << "CONFIG: " << endl;
     cout << "                  AS: " << AS << endl;
     cerr << "            routerID: " << routerID << endl;
     cerr << pConfig;
-    cerr << "          neighborAS: " << endl;
-    cerr << "    neighborrouterID: " << endl;
+    cerr << "          neighborAS: " << neighborAS << endl;
+    cerr << "    neighborrouterID: " << neighborrouterID << endl;
     cerr << "    net1, net1, etc.: " << endl;
 
     return 0;
