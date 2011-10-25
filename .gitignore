@@ -4,6 +4,7 @@
 *.swo
 *.exe
 *.map
+*.stackdump
 main
 echoserv
 serialize
