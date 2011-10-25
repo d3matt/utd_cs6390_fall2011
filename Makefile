@@ -23,7 +23,7 @@ ifeq ($(shell uname -s),CYGWIN_NT-5.1)
 BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_*.a --end-group
 endif
 
-BINLIST=main serialize echoserv RREQ_test router
+BINLIST=serialize echoserv RREQ_test router
 
 default: $(BINLIST)
 
