@@ -54,7 +54,7 @@ RREQ_test: RREQ.o RREQ_test.o Socket.o
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
 
-router: router.o utils.o
+router: router.o utils.o PCEconfig.o
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 

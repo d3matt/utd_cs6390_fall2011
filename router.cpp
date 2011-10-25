@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include "PCEconfig.h"
 #include "utils.h"
 
 
@@ -35,7 +36,7 @@ int main(int argc, char ** argv)
 
     uint32_t AS;
     uint32_t routerID;
-    string configFile;
+    PCEconfig * pConfig;
 
     if(string_to_int(argv[1], AS) == NULL)
         usage("First argument must be an integer");
@@ -47,15 +48,15 @@ int main(int argc, char ** argv)
     if(!valid_router(routerID))
         usage("routerID # must be between 0 and 9");
 
-    configFile=string(argv[3]);
+    pConfig=new PCEconfig(argv[3]);
 
     cout << "CONFIG: " << endl;
-    cout << "               AS: " << AS << endl;
-    cerr << "         routerID: " << routerID << endl;
-    cerr << "       configfile: " << configFile << endl;
-    cerr << "       neighborAS: " << endl;
-    cerr << " neighborrouterID: " << endl;
-    cerr << " net1, net1, etc.: " << endl;
+    cout << "                  AS: " << AS << endl;
+    cerr << "            routerID: " << routerID << endl;
+    cerr << pConfig;
+    cerr << "          neighborAS: " << endl;
+    cerr << "    neighborrouterID: " << endl;
+    cerr << "    net1, net1, etc.: " << endl;
 
     return 0;
 }
