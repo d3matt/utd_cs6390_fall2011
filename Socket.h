@@ -10,10 +10,6 @@ extern "C"
 #include <sstream>
 #include <string>
 
-/* Boost headers */
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-
 class Socket
 {
 private:
@@ -34,22 +30,26 @@ public:
     Socket();
     Socket(std::string host, uint16_t port);
     ~Socket();
-    
-    template <class T>
-    Socket &operator<< (T *t)
+
+    template <typename T>
+    void sendToSocket(T *t)
     {
-        myBuf << t;
+        myBuf.str(t->toString());
         output();
-        return *this;
     }
 
-    template <class T>
-    Socket &operator>> (T *t)
+    template <typename T>
+    Socket & operator<< (T *t)
+    {
+        myBuf << t->toString();
+        output();
+        return (*this);
+    }
+
+    std::string receiveFromSocket()
     {
         input();
-
-        myBuf.str() >> t;
-        return *this;
+        return myBuf.str();
     }
 
 };

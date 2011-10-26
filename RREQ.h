@@ -12,12 +12,19 @@ private:
 
 public:
 
-    RREQ(string inType="", int source=-1, int dest=-1);
+    RREQ(int inSource=-1, int inDest=-1) :
+        Message("RREQ"), source(inSource), dest(inDest)
+    {}
+
+    RREQ(string construct) : Message("RREQ")
+    {
+        fromString(construct);
+    }
 
     virtual string toString();
     virtual void fromString(string construct);
 
 };
 
-#endif
+#endif /* _RREQ_H */
 

@@ -6,7 +6,5 @@
 *.map
 main
 echoserv
-serialize
 router
-RREQ_test
-file.dat
+Message_test

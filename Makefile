@@ -23,7 +23,7 @@ ifeq ($(shell uname -s),CYGWIN_NT-5.1)
 BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_*.a --end-group
 endif
 
-BINLIST=serialize echoserv RREQ_test router
+BINLIST=echoserv Message_test router
 
 default: $(BINLIST)
 
@@ -42,17 +42,13 @@ main: main.o
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
-serialize: serialize.o Socket.o
-	@ echo LD $@
-	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
-
 echoserv: echoserv.o
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
-RREQ_test: RREQ.o RREQ_test.o Socket.o
+Message_test: RREQ.o RREP.o Message_test.o Socket.o
 	@ echo LD $@
-	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ 
 
 router: router.o utils.o PCEconfig.o
 	@ echo LD $@
