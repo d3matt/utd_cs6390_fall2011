@@ -20,9 +20,9 @@ int main(int argc, char ** argv)
         router_usage("invalid number of arguments");
 
     RouterStatus localStatus(argc, argv);
-    PCEconfig * pConfig=new PCEconfig(argv[3]);
+    PCEconfig pConfig(argv[3]);
 
-    cout << pConfig;
+    cout << &pConfig;
     cout << "localStatus: " << endl;
     cout << &localStatus;
 
