@@ -25,6 +25,8 @@ endif
 
 BINLIST=echoserv Message_test router
 
+COMMON_OBJECTS=utils.o PCEconfig.o RouterStatus.o usage.o
+
 default: $(BINLIST)
 
 .cpp.o:
@@ -50,7 +52,7 @@ Message_test: RREQ.o RREP.o Message_test.o Socket.o
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ 
 
-router: router.o utils.o PCEconfig.o
+router: router.o $(COMMON_OBJECTS)
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
