@@ -23,7 +23,7 @@ ifeq ($(shell uname -s),CYGWIN_NT-5.1)
 BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_*.a --end-group
 endif
 
-BINLIST=echoserv Message_test router
+BINLIST=echoserv Message_test router PCE
 
 COMMON_OBJECTS=utils.o PCEconfig.o RouterStatus.o usage.o
 
@@ -53,6 +53,10 @@ Message_test: RREQ.o RREP.o Message_test.o Socket.o
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ 
 
 router: router.o $(COMMON_OBJECTS)
+	@ echo LD $@
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
+
+PCE: PCE.o $(COMMON_OBJECTS)
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
 
