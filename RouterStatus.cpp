@@ -27,11 +27,12 @@ ostream& operator<< (ostream& out, const RouterStatus& c)
 }
 
 RouterStatus::RouterStatus()
-    : AS(99), routerID(99), neighborAS(99), neighborrouterID(99) { }
+    : Message("RTST"), AS(99), routerID(99), neighborAS(99), neighborrouterID(99) { }
 
 //RouterStatus contructor, only to be used by the main() for router.cpp
 //most of the command line parsing for router.cpp happens in this function
 RouterStatus::RouterStatus(int argc, char ** argv)
+    : Message("RTST")
 {
     if(string_to_int(argv[1], AS) == NULL)
         router_usage("First argument must be an integer");

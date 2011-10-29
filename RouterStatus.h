@@ -3,6 +3,8 @@
 #include <map>
 #include <iostream>
 
+#include "Message.h"
+
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/map.hpp>
@@ -25,7 +27,7 @@ public:
 };
 ostream& operator<< (ostream& out, Link l);
 
-class RouterStatus
+class RouterStatus : public Message
 {
 private:
     uint32_t        AS;
@@ -41,6 +43,7 @@ private:
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
+        ar & boost::serialization::base_object<Message>(*this);
         ar & AS;
         ar & routerID;
         ar & neighborAS;

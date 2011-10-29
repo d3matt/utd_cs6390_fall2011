@@ -5,6 +5,10 @@
 #include <iostream>
 #include <string>
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/map.hpp>
+
 using std::string;
 using std::ostream;
 using std::istream;
@@ -14,6 +18,14 @@ class Message
 
 protected:
     string type;
+
+    //for serialization
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & type;
+    }
 
 public:
 
