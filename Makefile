@@ -1,6 +1,6 @@
 CC=gcc
 CXX=g++
-LD=g++
+LD=$(CXX)
 CFLAGS=-Wall -g -fexceptions -O2 -fno-guess-branch-probability
 LDFLAGS=-Wl,-Map,$@.map 
 
