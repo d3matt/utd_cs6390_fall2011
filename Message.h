@@ -52,4 +52,7 @@ public:
 
 };
 
+//this get's around something that was fixed in newer versions of boost
+BOOST_CLASS_TRACKING(Message, boost::serialization::track_never);
+
 #endif

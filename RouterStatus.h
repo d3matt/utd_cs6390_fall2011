@@ -26,6 +26,8 @@ public:
     }
 };
 ostream& operator<< (ostream& out, Link l);
+//this get's around something that was fixed in newer versions of boost
+BOOST_CLASS_TRACKING(Link, boost::serialization::track_never);
 
 class RouterStatus : public Message
 {
@@ -59,5 +61,8 @@ public:
     int             addLink(uint32_t net);
     int             setLinkState(uint32_t net, bool state);
 };
+
+//this get's around something that was fixed in newer versions of boost
+BOOST_CLASS_TRACKING(RouterStatus, boost::serialization::track_never);
 
 #endif //__ROUTER_STATUS_H__

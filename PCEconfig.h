@@ -32,9 +32,9 @@ public:
         if(ASno > 9) {
             throw ASexception();
         }
-        if(portno > 0xffff) {
-            throw ASexception();
-        }
+//        if(portno > 0xffff) {
+//          throw ASexception();
+//        }
     }
 };
 
