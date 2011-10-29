@@ -1,7 +1,7 @@
 CC=gcc
 CXX=g++
 LD=g++
-CFLAGS=-Wall -g -fexceptions
+CFLAGS=-Wall -g -fexceptions -O2
 LDFLAGS=-Wl,-Map,$@.map 
 
 ifeq ($(HIDE),)
@@ -54,7 +54,7 @@ Message_test: RREQ.o RREP.o Message_test.o Socket.o
 
 router: router.o $(COMMON_OBJECTS)
 	@ echo LD $@
-	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
 
 clean:
 	rm -f *.map *.o $(BINLIST)

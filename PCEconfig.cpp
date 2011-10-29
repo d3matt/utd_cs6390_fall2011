@@ -31,10 +31,10 @@ PCEconfig::PCEconfig(const char* filename)
     infile.close();
 }
 
-ostream& operator<< (ostream& out, PCEconfig *c)
+ostream& operator<< (ostream& out, const PCEconfig &c)
 {
-    out << "PCEconfig (" << c-> filename << "): " << endl;
-    for(vector<AS>::iterator it=c->v.begin(); it < c->v.end(); it++)
+    out << "PCEconfig (" << c.filename << "): " << endl;
+    for(vector<AS>::const_iterator it=c.v.begin(); it < c.v.end(); it++)
     {
         out << "                       AS: " << it->ASno 
             << " host: " << it->hostname

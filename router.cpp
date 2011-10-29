@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <vector>
+#include <sstream>
 
 #include "PCEconfig.h"
 #include "RouterStatus.h"
@@ -22,9 +22,28 @@ int main(int argc, char ** argv)
     RouterStatus localStatus(argc, argv);
     PCEconfig pConfig(argv[3]);
 
-    cout << &pConfig;
-    cout << "localStatus: " << endl;
-    cout << &localStatus;
+    localStatus.setLinkState(3, false);
+
+    cout << pConfig;
+    cout << "localStatus (before serialization): " << endl;
+
+    cout << localStatus;
+
+    stringstream buffer;
+    {
+        boost::archive::text_oarchive oa(buffer);
+        oa << localStatus;
+    }
+
+    cout << "serialized data: '" << buffer.str() << "'" << endl;
+
+    RouterStatus deserialized;
+    {
+        boost::archive::text_iarchive ia(buffer);
+        ia >> deserialized;
+    }
+    cout << "localStatus (after serialization): " << endl;
+    cout << deserialized;
 
     return 0;
 }

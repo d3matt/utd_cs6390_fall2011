@@ -19,7 +19,7 @@ private:
     string      filename;
 public:
     PCEconfig(const char * filename);
-    friend ostream& operator<< (ostream& out, PCEconfig *c);
+    friend ostream& operator<< (ostream& out, const PCEconfig& c);
 
     class PCEexception: public exception
     {

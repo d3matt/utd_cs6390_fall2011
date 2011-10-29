@@ -3,8 +3,7 @@
 #include "utils.h"
 #include "usage.h"
 
-//FIXME: these << are probably not what we want for SER/DES
-ostream& operator<< (ostream& out, Link l)
+ostream& operator<< (ostream& out, const Link l)
 {
     out << "net: " << l.net;
     if(l.state)
@@ -15,13 +14,14 @@ ostream& operator<< (ostream& out, Link l)
     return out;
 }
 
-ostream& operator<< (ostream& out, RouterStatus *c)
+ostream& operator<< (ostream& out, const RouterStatus& c)
 {
-    out << c->AS << " " 
-        << c->routerID << " "
-        << c->neighborAS << " "
-        << c->neighborrouterID << endl;
-    for(map<int, Link>::iterator it=c->linkStates.begin(); it != c->linkStates.end(); it++)
+    out << "              AS: " << c.AS << endl
+        << "        routerID: " << c.routerID << endl
+        << "      neighborAS: " << c.neighborAS << endl
+        << "neighborrouterID: " << c.neighborrouterID << endl
+        << "      linkStates:"  << endl;
+    for(map<int, Link>::const_iterator it=c.linkStates.begin(); it != c.linkStates.end(); it++)
         out << it->second;
     return out;
 }
