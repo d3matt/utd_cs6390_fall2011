@@ -1,7 +1,7 @@
 CC=gcc
 CXX=g++
 LD=g++
-CFLAGS=-Wall -g -fexceptions -O2
+CFLAGS=-Wall -g -fexceptions -O2 -fno-guess-branch-probability
 LDFLAGS=-Wl,-Map,$@.map 
 
 ifeq ($(HIDE),)
