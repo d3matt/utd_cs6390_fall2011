@@ -1,18 +1,15 @@
-#ifndef _SOCKET_H
-#define _SOCKET_H
+#ifndef __SOCKET_H__
+#define __SOCKET_H__
 
-extern "C"
-{
-#   include<stdint.h>
-}
-
+#include <stdint.h>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "Exceptions.h"
 
 class Socket
 {
-private:
+protected:
     // Vars:
     std::stringstream myBuf;
 
@@ -24,12 +21,15 @@ private:
     int output();
     int input();
 
-
 public:
-
-    Socket();
+    Socket() {}
     Socket(std::string host, uint16_t port);
+    Socket(int sockFd) : connected(true), sockFd(sockFd) {}
     ~Socket();
+
+    struct SocketException : public easyException {
+        SocketException(std::string s) : easyException(s) {}
+    } ;
 
     template <typename T>
     void sendToSocket(T *t)
@@ -51,8 +51,14 @@ public:
         input();
         return myBuf.str();
     }
-
 };
 
-#endif /* _SOCKET_H */
+class ListenSocket : public Socket
+{
+public:
+    ListenSocket(uint16_t port);
+    Socket accept();
+};
+
+#endif /* __SOCKET_H__ */
 

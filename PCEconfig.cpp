@@ -2,7 +2,6 @@
 #include <fstream>
 #include <sstream>
 #include <netdb.h>
-#include <string.h>
 
 #include <vector>
 #include <boost/lexical_cast.hpp>
@@ -43,8 +42,9 @@ PCEconfig::PCEconfig(const char* filename)
                     boost::lexical_cast<uint32_t>(v[2]) );
         }
         catch( AS::ASexception& e ) {
-            cerr << "Bad AS at line: " << lno << endl;
-            _exit(1);
+            stringstream s;
+            s << "Bad AS (" << e.s << ") at line: " << lno << endl;
+            throw PCEexception(s.str());
         }
         catch( ... ) {
             stringstream s;
@@ -57,17 +57,6 @@ PCEconfig::PCEconfig(const char* filename)
             s << "Duplicate entries detected in configfile at line: " << lno;
             throw PCEexception(s.str());
         }
-        struct hostent * he;
-        he = gethostbyname( tmp.hostname.c_str() );
-        if ( he == NULL ) {
-            stringstream s;
-            s << "Unabled to lookup host '" << tmp.hostname 
-              << "' at line: " << lno;
-            throw PCEexception(s.str());
-        }
-        tmp.saddr_in.sin_family = AF_INET;
-        memcpy(&tmp.saddr_in.sin_addr, he->h_addr_list[0], 4);
-        tmp.saddr_in.sin_port = htons(tmp.portno);
         ASmap[tmp.ASno]=tmp;
     }
     infile.close();

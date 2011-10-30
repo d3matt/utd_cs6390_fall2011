@@ -25,7 +25,7 @@ endif
 
 BINLIST=echoserv Message_test router PCE
 
-COMMON_OBJECTS=utils.o PCEconfig.o RouterStatus.o usage.o
+COMMON_OBJECTS=utils.o AS.o PCEconfig.o RouterStatus.o usage.o
 
 default: $(BINLIST)
 
