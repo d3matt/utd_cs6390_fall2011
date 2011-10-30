@@ -7,6 +7,9 @@
 #include "AS.h"
 #include "Exceptions.h"
 
+#ifndef __PCECONFIG_H__
+#define __PCECONFIG_H__
+
 using namespace std;
 
 class PCEconfig
@@ -24,3 +27,5 @@ public:
 
     AS  getAS(uint32_t ASno);
 };
+
+#endif // __PCECONFIG_H__
