@@ -14,17 +14,19 @@ protected:
     std::stringstream myBuf;
 
     bool connected;
-    int sockFd;
+    int sockFD;
     
     //Functions:
-
+    void createFD(void);
+    void connectFD(struct sockaddr * psaddr);
     int output();
     int input();
 
 public:
     Socket() {}
     Socket(std::string host, uint16_t port);
-    Socket(int sockFd) : connected(true), sockFd(sockFd) {}
+    Socket(int sockFD) : connected(true), sockFD(sockFD) {}
+    Socket(struct sockaddr * psaddr);
     ~Socket();
 
     struct SocketException : public easyException {

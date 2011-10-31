@@ -15,37 +15,62 @@ extern "C"
 #include "Socket.h"
 
 Socket::Socket(std::string host, uint16_t port) :
-    connected(false), sockFd(-1)
+    connected(false), sockFD(0)
 {
     if(host != "")
     {
         struct hostent      *h_server;
-        struct sockaddr_in  servaddr;
+        union {
+        struct sockaddr_in  saddr_in;
+        struct sockaddr     saddr; };
         if( (h_server = gethostbyname(host.c_str())) == NULL) {
             throw( SocketException("Failed to find host") );
         }
 
-        servaddr.sin_family = AF_INET;
-        servaddr.sin_port   = htons(port);
-        servaddr.sin_addr   = *((struct in_addr *) h_server->h_addr);
+        saddr_in.sin_family = AF_INET;
+        saddr_in.sin_port   = htons(port);
+        saddr_in.sin_addr   = *((struct in_addr *) h_server->h_addr);
 
-        if( (sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-            throw( SocketException("Failed to create a socket") );
-        }
-
-        if( connect( sockFd, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) {
-            throw( SocketException("Failed to connect to socket") );
-        }
-
-        connected = true;
+        connectFD(&saddr);;
     }
+}
+Socket::Socket(struct sockaddr *saddr) {
+    connectFD(saddr);
 }
 
 Socket::~Socket()
 {
-    if(connected)
-        close(sockFd);
+    if(connected) {
+        close(sockFD);
+        sockFD=0;
+    }
 }
+
+void Socket::createFD(void)
+{
+    if(sockFD != 0)
+        throw SocketException("socket already created");
+    if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        throw( SocketException("Failed to create a socket") );
+    }
+}
+
+void Socket::connectFD(struct sockaddr * saddr)
+{
+    if(connected)
+        throw SocketException("already connected");
+    if(sockFD == 0) {
+        createFD();
+    }
+
+    if( connect( sockFD, saddr, sizeof(sockaddr)) < 0) {
+        throw( SocketException("Failed to connect to socket") );
+    }
+
+    connected = true;
+}
+
+
 
 int Socket::output()
 {
@@ -57,7 +82,7 @@ int Socket::output()
     const char *str = myBuf.str().c_str();
     memcpy(buffer, str, length);
 
-    int retVal = send(sockFd, buffer, length, 0);
+    int retVal = send(sockFD, buffer, length, 0);
 
     if(retVal == length) {
         myBuf.ignore();
@@ -71,7 +96,7 @@ int Socket::input()
 {
     char buffer[4096];
 
-    int retVal = recv(sockFd, buffer, 4096, 0);
+    int retVal = recv(sockFD, buffer, 4096, 0);
 
     if(retVal > 0) {
         myBuf.str(buffer);
@@ -87,10 +112,10 @@ ListenSocket::ListenSocket(uint16_t port)
     servaddr.sin_port           = htons(port);
     servaddr.sin_addr.s_addr    = htonl(INADDR_ANY);
 
-    if( (sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         throw( SocketException("Failed to create a socket") );
     }
-    if( bind( sockFd, (const sockaddr *)&servaddr, sizeof(servaddr) ) ) {
+    if( bind( sockFD, (const sockaddr *)&servaddr, sizeof(servaddr) ) ) {
         throw( SocketException("Failed to bind socket") );
     }
 }
