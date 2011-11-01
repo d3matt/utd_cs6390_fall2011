@@ -7,7 +7,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 
-#include <cstddef> // NULL
 #include <iomanip>
 #include <iostream>
 #include <fstream>
@@ -21,7 +20,6 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/list.hpp>
-#include <boost/serialization/assume_abstract.hpp>
 
 /////////////////////////////////////////////////////////////
 // The intent of this program is to serve as a tutorial for
@@ -94,7 +92,7 @@ public:
     virtual ~bus_stop(){}
 };
 
-BOOST_SERIALIZATION_ASSUME_ABSTRACT(bus_stop)
+BOOST_IS_ABSTRACT(bus_stop)
 
 std::ostream & operator<<(std::ostream &os, const bus_stop &bs)
 {
@@ -265,7 +263,7 @@ public:
     }
     bus_schedule(){}
 };
-BOOST_CLASS_VERSION(bus_schedule::trip_info, 2)
+BOOST_CLASS_VERSION(bus_schedule, 2)
 
 std::ostream & operator<<(std::ostream &os, const bus_schedule::trip_info &ti)
 {
