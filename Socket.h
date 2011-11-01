@@ -33,6 +33,12 @@ public:
         SocketException(std::string s) : easyException(s) {}
     } ;
 
+    void sendToSocket(std::string str)
+    {
+        myBuf.str(str);
+        output();
+    }
+
     template <typename T>
     void sendToSocket(T *t)
     {
@@ -59,7 +65,7 @@ class ListenSocket : public Socket
 {
 public:
     ListenSocket(uint16_t port);
-    Socket accept();
+    Socket* acceptConnection();
 };
 
 #endif /* __SOCKET_H__ */

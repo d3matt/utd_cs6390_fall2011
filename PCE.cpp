@@ -4,6 +4,7 @@
 
 #include "usage.h"
 #include "PCEconfig.h"
+#include "Socket.h"
 
 
 using namespace std;
@@ -31,6 +32,14 @@ int main(int argc, char ** argv)
     cout << config;
 
     AS me = config.getAS(ASno);
+
+    ListenSocket sock(me.portno);
+
+    Socket *s = sock.acceptConnection();
+
+    string str = s->receiveFromSocket();
+
+    cout << str << endl;
 /*
     int fd;
 

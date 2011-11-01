@@ -60,6 +60,8 @@ public:
                     RouterStatus(int argc, char ** argv);
     int             addLink(uint32_t net);
     int             setLinkState(uint32_t net, bool state);
+
+    uint32_t        getAS() {return AS;}
 };
 
 //this get's around something that was fixed in newer versions of boost

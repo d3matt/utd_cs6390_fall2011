@@ -118,4 +118,19 @@ ListenSocket::ListenSocket(uint16_t port)
     if( bind( sockFD, (const sockaddr *)&servaddr, sizeof(servaddr) ) ) {
         throw( SocketException("Failed to bind socket") );
     }
+    if( listen(sockFD, 5) < 0 )
+    {
+        throw( SocketException("Failed to listen on socket") );
+    }
+}
+
+Socket* ListenSocket::acceptConnection()
+{
+    Socket *s;
+    int newFD;
+    struct sockaddr addr;
+    socklen_t len = 0;
+    newFD = accept(sockFD, &addr, &len);
+    s = new Socket(newFD);
+    return s;
 }

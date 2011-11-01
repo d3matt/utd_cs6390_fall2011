@@ -5,10 +5,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "PCEconfig.h"
-#include "RouterStatus.h"
-#include "utils.h"
 #include "usage.h"
+#include "RouterStatus.h"
+#include "PCEconfig.h"
+#include "Socket.h"
+//#include "utils.h"
 
 using namespace std;
 
@@ -44,6 +45,12 @@ int main(int argc, char ** argv)
     }
     cout << "localStatus (after serialization): " << endl;
     cout << deserialized;
+
+    cout << pConfig.getAS(localStatus.getAS()).hostname << " " <<  pConfig.getAS(localStatus.getAS()).portno;
+
+    Socket s(pConfig.getAS(localStatus.getAS()).hostname, pConfig.getAS(localStatus.getAS()).portno);
+
+    s.sendToSocket(buffer.str());
 
     return 0;
 }
