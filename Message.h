@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -29,7 +30,8 @@ protected:
 
 public:
 
-    Message(string inType) : type(inType) {}
+    Message(string type) : type(type) {}
+    Message() : type("XXXX") {}
     virtual ~Message(void) {}
 
     virtual string toString(void)
@@ -52,7 +54,33 @@ public:
 
 };
 
+BOOST_SERIALIZATION_ASSUME_ABSTRACT(Message)
+
+
 //this get's around something that was fixed in newer versions of boost
 BOOST_CLASS_TRACKING(Message, boost::serialization::track_never);
+
+class RouterStatus;
+
+class MessageContainer
+{
+    friend class boost::serialization::access;
+    std::vector<Message *> messages;
+    
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+        ar.register_type(static_cast<RouterStatus *>(NULL));
+        ar & messages;
+    }
+
+public:
+    MessageContainer(Message * m) { messages.push_back(m); }
+    MessageContainer() { }
+    Message * getMessage(int m=0) { return messages[m]; }
+};
+
+//this get's around something that was fixed in newer versions of boost
+BOOST_CLASS_TRACKING(MessageContainer, boost::serialization::track_never);
 
 #endif
