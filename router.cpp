@@ -5,6 +5,9 @@
 #include <iostream>
 #include <sstream>
 
+#include <vector>
+#include <boost/serialization/vector.hpp>
+
 #include "PCEconfig.h"
 #include "RouterStatus.h"
 #include "utils.h"
@@ -29,21 +32,27 @@ int main(int argc, char ** argv)
 
     cout << localStatus;
 
+    MessageContainer in(&localStatus);
+
     stringstream buffer;
     {
         boost::archive::text_oarchive oa(buffer);
-        oa << localStatus;
+        oa << in;
     }
 
     cout << "serialized data: '" << buffer.str() << "'" << endl;
 
-    RouterStatus deserialized;
+    MessageContainer out;
+
     {
         boost::archive::text_iarchive ia(buffer);
-        ia >> deserialized;
+        ia >> out;
     }
+
+    RouterStatus * r;
+    r=(RouterStatus *)out.getMessage();
     cout << "localStatus (after serialization): " << endl;
-    cout << deserialized;
+    cout << *r;
 
     return 0;
 }
