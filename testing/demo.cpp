@@ -20,6 +20,7 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/list.hpp>
+#include <boost/serialization/string.hpp>
 
 /////////////////////////////////////////////////////////////
 // The intent of this program is to serve as a tutorial for
@@ -228,7 +229,7 @@ public:
         void serialize(Archive &ar, const unsigned int file_version)
         {
             // in versions 2 or later
-            if(file_version >= 2)
+//            if(file_version >= 2)
                 // read the drivers name
                 ar & driver;
             // all versions have the follwing info
