@@ -64,6 +64,7 @@ public:
 class ListenSocket : public Socket
 {
 public:
+    ~ListenSocket();
     ListenSocket(uint16_t port);
     Socket* acceptConnection();
 };

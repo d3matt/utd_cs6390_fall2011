@@ -2,10 +2,15 @@
 #include <iostream>
 #include <boost/lexical_cast.hpp>
 
+#include <vector>
+#include <map>
+
 #include "usage.h"
 #include "PCEconfig.h"
+#include "MessageContainer.h"
 #include "Socket.h"
 
+typedef std::pair<uint32_t, uint32_t> Edge;
 
 using namespace std;
 
@@ -37,9 +42,37 @@ int main(int argc, char ** argv)
 
     Socket *s = sock.acceptConnection();
 
-    string str = s->receiveFromSocket();
+    stringstream sstr;
+    sstr.str(s->receiveFromSocket());
 
-    cout << str << endl;
+    MessageContainer msg;
+    {
+        boost::archive::text_iarchive ia(sstr);
+        ia >> msg;
+    }
+
+    RouterStatus *r = (RouterStatus *)msg.getMessage();
+    vector<Edge> edges;
+
+    for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
+        iter1 != r->getLinkMap()->end(); ++iter1)
+    {
+        for(LinkMap::iterator iter2 = iter1;
+            iter2 != r->getLinkMap()->end(); ++iter2)
+        {
+            if(iter2 == iter1) continue;
+
+            edges.push_back(Edge(iter1->second.net, iter2->second.net));
+        }
+    }
+
+    for(int i = 0; i < edges.size(); i++)
+    {
+        cout << edges[i].first << " -- " << edges[i].second << endl;
+    }
+
+    delete s;
+
 /*
     int fd;
 

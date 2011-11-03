@@ -70,8 +70,6 @@ void Socket::connectFD(struct sockaddr * saddr)
     connected = true;
 }
 
-
-
 int Socket::output()
 {
     int length;
@@ -121,6 +119,15 @@ ListenSocket::ListenSocket(uint16_t port)
     if( listen(sockFD, 5) < 0 )
     {
         throw( SocketException("Failed to listen on socket") );
+    }
+}
+
+ListenSocket::~ListenSocket()
+{
+    if(connected)
+    {
+        close(sockFD);
+        connected=false;
     }
 }
 
