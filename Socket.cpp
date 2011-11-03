@@ -13,6 +13,11 @@ extern "C"
 
 
 #include "Socket.h"
+Socket::Socket(const Socket &copy)
+{
+    this->connected=copy.connected;
+    this->sockFD=copy.sockFD;
+}
 
 Socket::Socket(std::string host, uint16_t port) :
     connected(false), sockFD(0)
@@ -34,7 +39,7 @@ Socket::Socket(std::string host, uint16_t port) :
         connectFD(&saddr);;
     }
 }
-Socket::Socket(struct sockaddr *saddr) {
+Socket::Socket(struct sockaddr *saddr) : connected(false), sockFD(0) {
     connectFD(saddr);
 }
 
@@ -105,6 +110,34 @@ int Socket::input()
     return retVal;
 }
 
+/*
+void send_MessageContainer(const MessageContainer &m, std::ostream &out)
+{
+    boost::archive::text_oarchive oa(out);
+    oa << m;
+}
+*/
+
+void Socket::sendMessage(const MessageContainer &m)
+{
+    {
+        boost::archive::text_oarchive oa(myBuf);
+        oa << m;
+    }
+    output();
+}
+
+MessageContainer Socket::getMessage()
+{
+    MessageContainer m;
+    input();
+    {
+        boost::archive::text_iarchive ia(myBuf);
+        ia >> m;
+    }
+    return m;
+}
+
 ListenSocket::ListenSocket(uint16_t port)
 {
     struct sockaddr_in  servaddr;
@@ -124,13 +157,12 @@ ListenSocket::ListenSocket(uint16_t port)
     }
 }
 
-Socket* ListenSocket::acceptConnection()
+Socket ListenSocket::acceptConnection()
 {
-    Socket *s;
     int newFD;
     struct sockaddr addr;
     socklen_t len = 0;
     newFD = accept(sockFD, &addr, &len);
-    s = new Socket(newFD);
+    Socket s(newFD);
     return s;
 }

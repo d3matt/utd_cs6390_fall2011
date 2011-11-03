@@ -6,6 +6,7 @@
 
 #include "AS.h"
 #include "Exceptions.h"
+#include "RouterStatus.h"
 
 #ifndef __PCECONFIG_H__
 #define __PCECONFIG_H__
@@ -25,7 +26,8 @@ public:
         PCEexception(std::string s) : easyException(s) {}
         } ;
 
-    AS  getAS(uint32_t ASno);
+    AS  getAS(const uint32_t ASno);
+    AS  getAS(const RouterStatus& r) { return getAS( r.getAS() ); }
 };
 
 #endif // __PCECONFIG_H__

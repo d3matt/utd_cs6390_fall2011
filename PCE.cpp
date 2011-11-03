@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <iostream>
+#include <sstream>
 #include <boost/lexical_cast.hpp>
 
 #include "usage.h"
 #include "PCEconfig.h"
 #include "Socket.h"
+
+#include "MessageContainer.h"
 
 
 using namespace std;
@@ -34,22 +37,15 @@ int main(int argc, char ** argv)
     AS me = config.getAS(ASno);
 
     ListenSocket sock(me.portno);
+    
+    while(1) {
+        Socket s = sock.acceptConnection();
 
-    Socket *s = sock.acceptConnection();
+        MessageContainer out=s.getMessage();
 
-    string str = s->receiveFromSocket();
-
-    cout << str << endl;
-/*
-    int fd;
-
-    if ( (fd=socket(AF_INET, SOCK_DGRAM, 0) ) < 0 ) {
-        pdie("socket()");
+        RouterStatus * r;
+        r=(RouterStatus *) out.getMessage();
+        cout << "received router status: " << endl;
+        cout << *r;
     }
-    me.saddr_in.sin_addr.s_addr = htonl(INADDR_ANY);
-
-    if( bind(fd, &me.saddr, sizeof(sockaddr) ) ) {
-        pdie("bind()");
-    }
-*/
 }

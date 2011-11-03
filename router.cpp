@@ -43,29 +43,11 @@ int main(int argc, char ** argv)
 
     cout << localStatus;
 
-    MessageContainer in(&localStatus);
+    MessageContainer m(&localStatus);
 
-    stringstream buffer;
-    send_MessageContainer(in, buffer);
-
-    cout << "serialized data: '" << buffer.str() << "'" << endl;
-
-    MessageContainer out;
-    {
-        boost::archive::text_iarchive ia(buffer);
-        ia >> out;
-    }
-
-    RouterStatus * r;
-    r=(RouterStatus *)out.getMessage();
-    cout << "localStatus (after serialization): " << endl;
-    cout << *r;
-
-    cout << pConfig.getAS(localStatus.getAS()).hostname << " " <<  pConfig.getAS(localStatus.getAS()).portno;
-
-    Socket s(pConfig.getAS(localStatus.getAS()).hostname, pConfig.getAS(localStatus.getAS()).portno);
-
-    s.sendToSocket(buffer.str());
+    AS myAS=pConfig.getAS(localStatus);
+    Socket s(&myAS.saddr);
+    s.sendMessage(m);
 
     return 0;
 }

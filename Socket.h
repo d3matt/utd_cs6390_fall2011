@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include "Exceptions.h"
+#include "MessageContainer.h"
 
 class Socket
 {
@@ -24,6 +25,7 @@ protected:
 
 public:
     Socket() {}
+    Socket(const Socket &copy);
     Socket(std::string host, uint16_t port);
     Socket(int sockFD) : connected(true), sockFD(sockFD) {}
     Socket(struct sockaddr * psaddr);
@@ -59,13 +61,16 @@ public:
         input();
         return myBuf.str();
     }
+
+    void                sendMessage(const MessageContainer &m);
+    MessageContainer    getMessage();
 };
 
 class ListenSocket : public Socket
 {
 public:
     ListenSocket(uint16_t port);
-    Socket* acceptConnection();
+    Socket acceptConnection();
 };
 
 #endif /* __SOCKET_H__ */

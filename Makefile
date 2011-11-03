@@ -48,9 +48,9 @@ echoserv: echoserv.o
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
-Message_test: RREQ.o RREP.o Message_test.o Socket.o
+Message_test: RREQ.o RREP.o Message_test.o $(COMMON_OBJECTS)
 	@ echo LD $@
-	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ 
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
 
 router: router.o $(COMMON_OBJECTS)
 	@ echo LD $@
