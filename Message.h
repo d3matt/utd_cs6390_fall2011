@@ -6,9 +6,13 @@
 #include <string>
 #include <vector>
 
+#include <boost/version.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/base_object.hpp>
 #include <boost/serialization/map.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
 
 using std::string;
 using std::ostream;
@@ -54,33 +58,14 @@ public:
 
 };
 
+/* 
+  tracking BOOST_VERSION like this is bad, but there's not a very good way to 
+compile on cs1 + our fedora15 machines...
+ */
+#if BOOST_VERSION == 103301
+BOOST_IS_ABSTRACT(Message)
+#else
 BOOST_SERIALIZATION_ASSUME_ABSTRACT(Message)
-
-
-//this get's around something that was fixed in newer versions of boost
-BOOST_CLASS_TRACKING(Message, boost::serialization::track_never);
-
-class RouterStatus;
-
-class MessageContainer
-{
-    friend class boost::serialization::access;
-    std::vector<Message *> messages;
-    
-    template<class Archive>
-    void serialize(Archive &ar, const unsigned int version)
-    {
-        ar.register_type(static_cast<RouterStatus *>(NULL));
-        ar & messages;
-    }
-
-public:
-    MessageContainer(Message * m) { messages.push_back(m); }
-    MessageContainer() { }
-    Message * getMessage(int m=0) { return messages[m]; }
-};
-
-//this get's around something that was fixed in newer versions of boost
-BOOST_CLASS_TRACKING(MessageContainer, boost::serialization::track_never);
+#endif
 
 #endif

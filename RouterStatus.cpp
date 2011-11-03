@@ -3,6 +3,8 @@
 #include "utils.h"
 #include "usage.h"
 
+using namespace std;
+
 ostream& operator<< (ostream& out, const Link l)
 {
     out << "net: " << l.net;

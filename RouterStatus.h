@@ -1,3 +1,6 @@
+#ifndef __ROUTER_STATUS_H__
+#define __ROUTER_STATUS_H__
+
 #include <stdint.h>
 
 #include <map>
@@ -9,25 +12,21 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/map.hpp>
 
-#ifndef __ROUTER_STATUS_H__
-#define __ROUTER_STATUS_H__
-
-using namespace std;
 class Link {
 public:
     uint32_t    net;
     bool        state;
     //for serialization
+    friend class boost::serialization::access;
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-        ar & net;
-        ar & state;
+        ar & net & state;
     }
 };
 ostream& operator<< (ostream& out, Link l);
 //this get's around something that was fixed in newer versions of boost
-BOOST_CLASS_TRACKING(Link, boost::serialization::track_never);
+//BOOST_CLASS_TRACKING(Link, boost::serialization::track_never);
 
 class RouterStatus : public Message
 {
@@ -38,7 +37,7 @@ private:
     uint32_t        neighborrouterID;
 
     //used a map to make lookups fast
-    map<int, Link>  linkStates;
+    std::map<int, Link>  linkStates;
 
     //for serialization
     friend class boost::serialization::access;
@@ -46,10 +45,7 @@ private:
     void serialize(Archive & ar, const unsigned int version)
     {
         ar & boost::serialization::base_object<Message>(*this);
-        ar & AS;
-        ar & routerID;
-        ar & neighborAS;
-        ar & neighborrouterID;
+        ar & AS & routerID & neighborAS & neighborrouterID;
         ar & linkStates;
     }
 
@@ -63,8 +59,5 @@ public:
 
     uint32_t        getAS() {return AS;}
 };
-
-//this get's around something that was fixed in newer versions of boost
-BOOST_CLASS_TRACKING(RouterStatus, boost::serialization::track_never);
 
 #endif //__ROUTER_STATUS_H__
