@@ -39,50 +39,34 @@ int main(int argc, char ** argv)
     AS me = config.getAS(ASno);
 
     ListenSocket sock(me.portno);
+    
+    while(1) {
+        Socket s = sock.acceptConnection();
+        MessageContainer out=s.getMessage();
 
-    Socket *s = sock.acceptConnection();
+        RouterStatus * r;
+        r=(RouterStatus *) out.getMessage();
+        cout << "received router status: " << endl;
+        cout << *r;
 
-    stringstream sstr;
-    sstr.str(s->receiveFromSocket());
-
-    MessageContainer msg;
-    {
-        boost::archive::text_iarchive ia(sstr);
-        ia >> msg;
-    }
-
-    RouterStatus *r = (RouterStatus *)msg.getMessage();
-    vector<Edge> edges;
-
-    for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
-        iter1 != r->getLinkMap()->end(); ++iter1)
-    {
-        for(LinkMap::iterator iter2 = iter1;
-            iter2 != r->getLinkMap()->end(); ++iter2)
+        vector<Edge> edges;
+    
+        for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
+            iter1 != r->getLinkMap()->end(); ++iter1)
         {
-            if(iter2 == iter1) continue;
-
-            edges.push_back(Edge(iter1->second.net, iter2->second.net));
+            for(LinkMap::iterator iter2 = iter1;
+                iter2 != r->getLinkMap()->end(); ++iter2)
+            {
+                if(iter2 == iter1) continue;
+    
+                edges.push_back(Edge(iter1->second.net, iter2->second.net));
+            }
+        }
+    
+        for(unsigned i = 0; i < edges.size(); i++)
+        {
+            cout << edges[i].first << " -- " << edges[i].second << endl;
         }
     }
-
-    for(int i = 0; i < edges.size(); i++)
-    {
-        cout << edges[i].first << " -- " << edges[i].second << endl;
-    }
-
-    delete s;
-
-/*
-    int fd;
-
-    if ( (fd=socket(AF_INET, SOCK_DGRAM, 0) ) < 0 ) {
-        pdie("socket()");
-    }
-    me.saddr_in.sin_addr.s_addr = htonl(INADDR_ANY);
-
-    if( bind(fd, &me.saddr, sizeof(sockaddr) ) ) {
-        pdie("bind()");
-    }
-*/
+    
 }

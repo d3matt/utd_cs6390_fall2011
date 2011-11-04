@@ -22,10 +22,6 @@ public:
     Message * getMessage() { return m; }
 };
 
-void send_MessageContainer(const MessageContainer &m, std::ostream &out)
-{
-    boost::archive::text_oarchive oa(out);
-    oa << m;
-}
+//void send_MessageContainer(const MessageContainer &m, std::ostream &out);
 
 #endif //__MESSAGE_CONTAINER_H__

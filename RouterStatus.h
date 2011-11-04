@@ -59,7 +59,7 @@ public:
     int             addLink(uint32_t net);
     int             setLinkState(uint32_t net, bool state);
 
-    uint32_t        getAS() {return AS;}
+    uint32_t        getAS() const {return AS;}
     LinkMap        *getLinkMap() {return &linkStates;}
 };
 

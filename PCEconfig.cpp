@@ -74,7 +74,7 @@ ostream& operator<< (ostream& out, const PCEconfig &c)
     return out;
 }
 
-AS PCEconfig::getAS(uint32_t ASno)
+AS PCEconfig::getAS(const uint32_t ASno)
 {
     map<uint32_t,AS>::iterator it = ASmap.find(ASno);
     if(it == ASmap.end()) {
