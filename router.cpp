@@ -47,7 +47,11 @@ int main(int argc, char ** argv)
 
     AS myAS=pConfig.getAS(localStatus);
     Socket s(&myAS.saddr);
-    s.sendMessage(m);
+    while(1)
+    {
+        s.sendMessage(m);
+        sleep(1);
+    }
 
     return 0;
 }

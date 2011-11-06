@@ -2,7 +2,7 @@ CC=gcc
 CXX=g++
 LD=$(CXX)
 CFLAGS=-Wall -g -fexceptions -O2 -fno-guess-branch-probability
-LDFLAGS=-Wl,-Map,$@.map 
+LDFLAGS=-Wl,-Map,$@.map -lpthread
 
 ifeq ($(HIDE),)
 HIDE:= @

@@ -1,4 +1,6 @@
 
+#include <iostream>
+using std::cout;
 
 extern "C"
 {
@@ -10,6 +12,8 @@ extern "C"
 #   include <errno.h>
 #   include <string.h>
 }
+
+static const int CONNECTION_CLOSED = -10;
 
 
 #include "Socket.h"
@@ -81,8 +85,10 @@ int Socket::output()
     char buffer[1024];
 
     length = myBuf.str().length();
-
-    const char *str = myBuf.str().c_str();
+    
+    /* I don't know why, but with large buffers, this works */
+    std::string tmpStr = myBuf.str();
+    const char *str = tmpStr.c_str();
     memcpy(buffer, str, length);
 
     int retVal = send(sockFD, buffer, length, 0);
@@ -104,6 +110,10 @@ int Socket::input()
     if(retVal > 0) {
         myBuf.str(buffer);
     }
+    else if(retVal == 0)
+    {
+        retVal = CONNECTION_CLOSED;
+    }
     
     return retVal;
 }
@@ -118,6 +128,7 @@ void send_MessageContainer(const MessageContainer &m, std::ostream &out)
 
 void Socket::sendMessage(const MessageContainer &m)
 {
+    myBuf.str("");
     {
         boost::archive::text_oarchive oa(myBuf);
         oa << m;
@@ -128,10 +139,15 @@ void Socket::sendMessage(const MessageContainer &m)
 MessageContainer Socket::getMessage()
 {
     MessageContainer m;
-    input();
+    int ret = input();
+    if(ret > 0)
     {
         boost::archive::text_iarchive ia(myBuf);
         ia >> m;
+    }
+    else if(ret == CONNECTION_CLOSED)
+    {
+        throw (SocketException("Connection was closed"));
     }
     return m;
 }

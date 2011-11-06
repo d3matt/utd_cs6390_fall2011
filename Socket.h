@@ -64,6 +64,15 @@ public:
 
     void                sendMessage(const MessageContainer &m);
     MessageContainer    getMessage();
+
+    friend std::ostream & operator<< (std::ostream &ostr, Socket s)
+    {
+        if(s.connected)
+            ostr << "Connected with FD: " << s.sockFD;
+        else
+            ostr << "Not Connected";
+        return ostr;
+    }
 };
 
 class ListenSocket : public Socket
