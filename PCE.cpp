@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include <iostream>
-#include <boost/lexical_cast.hpp>
 
 #include <vector>
 #include <map>
+
+#include <boost/lexical_cast.hpp>
+
+#include <boost/config.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 
 extern "C"
 {
@@ -14,7 +20,7 @@ extern "C"
 #include "PCEconfig.h"
 #include "MessageContainer.h"
 #include "Socket.h"
-
+#include "utils.h"
 
 using namespace std;
 
@@ -35,20 +41,35 @@ struct EdgeLess
 
 typedef pair<Edge, bool> EdgeMapEntry;
 typedef map<Edge, bool, EdgeLess> EdgeMap;
-EdgeMap edges;
+
+typedef pair<unsigned, unsigned> NodeMapEntry;
+typedef map<unsigned, unsigned> NodeMap;
 
 typedef struct 
 {
     Socket *s;
-    pthread_mutex_t *mutex;
+    pthread_mutex_t *edgeMutex;
+    pthread_mutex_t *nodeMutex;
+    pthread_mutex_t *graphMutex;
 } recvThreadParams_t;
 
 typedef std::pair<pthread_t, recvThreadParams_t> RecvThreadId;
 
 typedef struct
 {
-    pthread_mutex_t *mutex;
+    pthread_mutex_t *edgeMutex;
+    pthread_mutex_t *nodeMutex;
+    pthread_mutex_t *graphMutex;
 } workerThreadParams_t;
+
+typedef boost::property<boost::edge_weight_t, int>  EdgeWeight;
+typedef boost::adjacency_list < boost::listS, boost::vecS, boost::undirectedS, 
+    boost::no_property, boost::property<boost::edge_weight_t, int> > graph_t;
+typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_descriptor;
+typedef boost::graph_traits<graph_t>::edge_descriptor edge_descriptor;
+
+EdgeMap edges;
+NodeMap nodes;
 
 void pdie(const char * msg, int rc=1)
 {
@@ -59,8 +80,12 @@ void pdie(const char * msg, int rc=1)
 void * recvThread(void *params)
 {
     Socket *s = ((recvThreadParams_t *)params)->s;
-    pthread_mutex_t *mutex = ((recvThreadParams_t *)params)->mutex;
+    pthread_mutex_t *edgeMutex = ((recvThreadParams_t *)params)->edgeMutex;
+    pthread_mutex_t *nodeMutex = ((recvThreadParams_t *)params)->nodeMutex;
+    pthread_mutex_t *graphMutex = ((recvThreadParams_t *)params)->graphMutex;
+
     EdgeMap myEdges;
+    NodeMap myNodes;
 
     while (1)
     {
@@ -80,6 +105,49 @@ void * recvThread(void *params)
         cout << *r;
         */
 
+        for(LinkMap::iterator it = r->getLinkMap()->begin();
+            it != r->getLinkMap()->end(); ++it)
+        {
+            if(it->second.state)
+            {
+                pair<NodeMap::iterator, bool> myTest = myNodes.insert(NodeMapEntry(it->second.net, 1));
+                if(myTest.second)
+                {
+                    MutexLocker nodeLock(nodeMutex);
+                    {
+                        pair<NodeMap::iterator, bool> test = nodes.insert(NodeMapEntry(it->second.net, 1));
+                        if(test.second == false)
+                        {
+                            unsigned count = test.first->second + 1;
+                            nodes.erase(it->second.net);
+                            nodes.insert(NodeMapEntry(it->second.net, count));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if(myNodes.erase(it->second.net) > 0)
+                {
+                    MutexLocker nodeLock(nodeMutex);
+                    {
+                        NodeMap::iterator test = nodes.find(it->second.net);
+                        if(test->second == 1)
+                        {
+                            nodes.erase(it->second.net);
+                        }   
+                        else
+                        {
+                            unsigned count = test->second-1;
+                            nodes.erase(it->second.net);
+                            nodes.insert(NodeMapEntry(it->second.net, count));
+                        }
+                    }
+                }
+            }
+
+        }
+
         for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
             iter1 != r->getLinkMap()->end(); ++iter1)
         {
@@ -93,45 +161,127 @@ void * recvThread(void *params)
 
                 myEdges.insert(EdgeMapEntry(newEdge, state));
     
-                pthread_mutex_lock(mutex);
                 if(state)
                 {
-                    edges.insert(EdgeMapEntry(newEdge, state));
+                    MutexLocker graphLock(graphMutex);
+                    {
+                        MutexLocker edgeLock(edgeMutex);
+                        edges.insert(EdgeMapEntry(newEdge, state));
+                    }
                 }
-                else if(!state)
+                else
                 {
-                    edges.erase(newEdge);
+                    MutexLocker graphLock(graphMutex);
+                    {
+                        MutexLocker edgeLock(edgeMutex);
+                        edges.erase(newEdge);
+                    }
                 }
-                pthread_mutex_unlock(mutex);
             }
         }
     }
 
-    for(EdgeMap::iterator it = myEdges.begin(); it != myEdges.end(); ++it)
-        edges.erase(it->first);
+    {
+        MutexLocker graphLock(graphMutex);
+        for(NodeMap::iterator it = myNodes.begin(); it != myNodes.end(); ++it)
+        {
+            MutexLocker nodeLock(nodeMutex);
+            {
+                NodeMap::iterator test = nodes.find(it->first);
+                if(test->second == 1)
+                {
+                    nodes.erase(it->first);
+                }
+                else
+                {
+                    unsigned count = test->second-1;
+                    nodes.erase(it->first);
+                    nodes.insert(NodeMapEntry(it->first, count));
+                }
+            }
+        }
+
+        for(EdgeMap::iterator it = myEdges.begin(); it != myEdges.end(); ++it)
+        {
+            MutexLocker edgeLock(edgeMutex);
+            edges.erase(it->first);
+        }
+
+    }
 
     return NULL;
 }
 
 void *workerThread(void *param)
 {
-    pthread_mutex_t *mutex = ((workerThreadParams_t*)param)->mutex;
+    pthread_mutex_t *edgeMutex = ((workerThreadParams_t*)param)->edgeMutex;
+    pthread_mutex_t *nodeMutex = ((workerThreadParams_t*)param)->nodeMutex;
+    pthread_mutex_t *graphMutex = ((workerThreadParams_t*)param)->graphMutex;
 
     unsigned numEdges = 0;
+    unsigned numNodes = 0;
+
+    graph_t g;
+
+    vector<vertex_descriptor> p;
+    vector<int> d;
 
     while(1)
     {
-        pthread_mutex_lock(mutex);
-        unsigned tmpNum = edges.size();
+        unsigned tmpNum;
+
+        {
+            MutexLocker graphLock(graphMutex);
+            MutexLocker edgeLock(edgeMutex);
+            tmpNum = edges.size();
+        }
+
         if(numEdges != tmpNum)
         {
             numEdges = tmpNum;
-            for(EdgeMap::iterator it = edges.begin(); it != edges.end(); ++it)
+
+            boost::graph_traits < graph_t >::vertex_iterator vt, vtend;
             {
-                cout << it->first.first << " -- " << it->first.second << endl;
+                MutexLocker graphLock(graphMutex);
+                {
+                    MutexLocker nodeLock(nodeMutex);
+                    numNodes = nodes.size();
+                }
+
+                if(numNodes && numEdges)
+                {
+                    g = graph_t(numNodes);
+                    
+                    {
+                        MutexLocker lock(edgeMutex);
+                        for(EdgeMap::iterator it = edges.begin(); it != edges.end(); ++it)
+                        {
+                            cout << it->first.first << " -- " << it->first.second << endl;
+                            boost::add_edge(it->first.first, it->first.second, EdgeWeight(1), g);
+                        }
+                    }
+    
+                    p = vector<vertex_descriptor>(boost::num_vertices(g));
+                    d = vector<int>(boost::num_vertices(g));
+    
+                    vertex_descriptor s = boost::vertex(nodes.begin()->first, g);
+    
+                    boost::dijkstra_shortest_paths(g, s, boost::predecessor_map(&p[0]).distance_map(&d[0]));
+    
+                    boost::tie(vt, vtend) = boost::vertices(g);
+                }
+            }
+            
+            if(numNodes && numEdges)
+            {
+                for( ; vt != vtend; ++vt)
+                {
+                    cout << "distance(" << *vt << ") = " << d[*vt] << ", ";
+                    cout << "parent(" << *vt << ") = " << p[*vt] << endl;
+                }
             }
         }
-        pthread_mutex_unlock(mutex);
+
 
         sleep(1);
     }
@@ -162,10 +312,18 @@ int main(int argc, char ** argv)
 
     pthread_mutex_t edgeMutex;
     pthread_mutex_init(&edgeMutex, NULL);
+
+    pthread_mutex_t nodeMutex;
+    pthread_mutex_init(&nodeMutex, NULL);
+
+    pthread_mutex_t graphMutex;
+    pthread_mutex_init(&graphMutex, NULL);
     
     pthread_t workerId;
     workerThreadParams_t workerParams;
-    workerParams.mutex = &edgeMutex;
+    workerParams.edgeMutex = &edgeMutex;
+    workerParams.nodeMutex = &nodeMutex;
+    workerParams.graphMutex = &graphMutex;
     pthread_create(&workerId, 0, workerThread, &workerParams);
     
     vector<RecvThreadId*> threadIds;
@@ -174,7 +332,9 @@ int main(int argc, char ** argv)
     {
         RecvThreadId *id = new RecvThreadId();    
         id->second.s = new Socket(sock.acceptConnection());
-        id->second.mutex = &edgeMutex;
+        id->second.edgeMutex = &nodeMutex;
+        id->second.nodeMutex = &nodeMutex;
+        id->second.graphMutex = &graphMutex;
 
         pthread_create(&(id->first), 0, recvThread, &(id->second));
 
