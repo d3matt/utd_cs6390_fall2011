@@ -6,7 +6,7 @@
 
 #include "AS.h"
 #include "Exceptions.h"
-#include "RouterStatus.h"
+#include "Message.h"
 
 #ifndef __PCECONFIG_H__
 #define __PCECONFIG_H__

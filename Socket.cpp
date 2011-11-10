@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <sstream>
 using std::cout;
 
 extern "C"
@@ -11,10 +12,8 @@ extern "C"
 
 #   include <errno.h>
 #   include <string.h>
+#   include <stdio.h>
 }
-
-static const int CONNECTION_CLOSED = -10;
-
 
 #include "Socket.h"
 Socket::Socket(const Socket &copy)
@@ -24,7 +23,7 @@ Socket::Socket(const Socket &copy)
 }
 
 Socket::Socket(std::string host, uint16_t port) :
-    connected(false), sockFD(0)
+    connected(false), sockFD(-1)
 {
     if(host != "")
     {
@@ -43,7 +42,7 @@ Socket::Socket(std::string host, uint16_t port) :
         connectFD(&saddr);;
     }
 }
-Socket::Socket(struct sockaddr *saddr) : connected(false), sockFD(0) {
+Socket::Socket(struct sockaddr *saddr) : connected(false), sockFD(-1) {
     connectFD(saddr);
 }
 
@@ -51,13 +50,13 @@ Socket::~Socket()
 {
     if(connected) {
         close(sockFD);
-        sockFD=0;
+        sockFD=-1;
     }
 }
 
 void Socket::createFD(void)
 {
-    if(sockFD != 0)
+    if(sockFD != -1)
         throw SocketException("socket already created");
     if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         throw( SocketException("Failed to create a socket") );
@@ -68,7 +67,7 @@ void Socket::connectFD(struct sockaddr * saddr)
 {
     if(connected)
         throw SocketException("already connected");
-    if(sockFD == 0) {
+    if(sockFD == -1) {
         createFD();
     }
 
@@ -87,6 +86,7 @@ int Socket::output()
     length = myBuf.str().length();
     
     /* I don't know why, but with large buffers, this works */
+    // does directly using the stringstream's backing store not work?
     std::string tmpStr = myBuf.str();
     const char *str = tmpStr.c_str();
     memcpy(buffer, str, length);
@@ -97,6 +97,15 @@ int Socket::output()
         myBuf.ignore();
         myBuf.seekg(0, std::ios::beg);
     }
+    else if (retVal < 0) {
+        std::stringstream ss;
+        ss << "error sending: " << errno;
+        perror("send()");
+        throw SocketException(ss.str());
+    }
+    else {
+        std::cerr << "small send" << std::endl;
+    }
 
     return retVal;
 }
@@ -105,49 +114,48 @@ int Socket::input()
 {
     char buffer[4096];
 
+    if (!connected)
+    {
+        throw(NotConnectedException() );
+    }
+
     int retVal = recv(sockFD, buffer, 4096, 0);
 
     if(retVal > 0) {
         myBuf.str(buffer);
     }
-    else if(retVal == 0)
+    else if(retVal < 0)
     {
-        retVal = CONNECTION_CLOSED;
+        strerror_r(errno, buffer, 4096);
+        throw SocketException( string("Error in recv()") + buffer);
+    }
+    if (retVal == 0) {
+        connected=false;
+        close(sockFD);
+        sockFD=-1;
+        throw NotConnectedException();
     }
     
     return retVal;
 }
 
-/*
-void send_MessageContainer(const MessageContainer &m, std::ostream &out)
-{
-    boost::archive::text_oarchive oa(out);
-    oa << m;
-}
-*/
-
-void Socket::sendMessage(const MessageContainer &m)
+int Socket::sendMessage(const MessageContainer &m)
 {
     myBuf.str("");
     {
         boost::archive::text_oarchive oa(myBuf);
         oa << m;
     }
-    output();
+    return output();
 }
 
 MessageContainer Socket::getMessage()
 {
     MessageContainer m;
-    int ret = input();
-    if(ret > 0)
+    if(input() >= 0)
     {
         boost::archive::text_iarchive ia(myBuf);
         ia >> m;
-    }
-    else if(ret == CONNECTION_CLOSED)
-    {
-        throw (SocketException("Connection was closed"));
     }
     return m;
 }

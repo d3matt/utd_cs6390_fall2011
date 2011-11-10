@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 #include "Exceptions.h"
-#include "MessageContainer.h"
+#include "Message.h"
 
 class Socket
 {
@@ -30,7 +30,11 @@ public:
     Socket(int sockFD) : connected(true), sockFD(sockFD) {}
     Socket(struct sockaddr * psaddr);
     ~Socket();
+    bool isConnected() { return connected; }
 
+    struct NotConnectedException : public easyException {
+        NotConnectedException() : easyException("Not Connected") {}
+    } ;
     struct SocketException : public easyException {
         SocketException(std::string s) : easyException(s) {}
     } ;
@@ -62,7 +66,7 @@ public:
         return myBuf.str();
     }
 
-    void                sendMessage(const MessageContainer &m);
+    int                 sendMessage(const MessageContainer &m);
     MessageContainer    getMessage();
 
     friend std::ostream & operator<< (std::ostream &ostr, Socket s)

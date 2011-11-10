@@ -1,4 +1,4 @@
-#include "RouterStatus.h"
+#include "Message.h"
 
 #include "utils.h"
 #include "usage.h"
@@ -7,11 +7,12 @@ using namespace std;
 
 ostream& operator<< (ostream& out, const Link l)
 {
-    out << "net: " << l.net;
+    out << "net:" << l.net;
     if(l.state)
-        out << " (UP)";
+        out << "\t(UP)";
     else
-        out << " (DOWN)";
+        out << "\t(DOWN)";
+    out << "\t" <<  l.metric;
     out << endl;
     return out;
 }
@@ -23,7 +24,7 @@ ostream& operator<< (ostream& out, const RouterStatus& c)
         << "      neighborAS: " << c.neighborAS << endl
         << "neighborrouterID: " << c.neighborrouterID << endl
         << "      linkStates:"  << endl;
-    for(map<int, Link>::const_iterator it=c.linkStates.begin(); it != c.linkStates.end(); it++)
+    for(LinkMap::const_iterator it=c.linkStates.begin(); it != c.linkStates.end(); it++)
         out << it->second;
     return out;
 }
@@ -55,6 +56,7 @@ RouterStatus::RouterStatus(int argc, char ** argv)
 
     Link l;
     l.state=true;
+    l.metric=1;
     for(int32_t i=6; i < argc; i ++)
     {
         uint32_t tmp;
@@ -69,23 +71,35 @@ RouterStatus::RouterStatus(int argc, char ** argv)
     }
 }
 
-int RouterStatus::addLink(uint32_t net)
+int RouterStatus::addLink(uint32_t net, uint32_t metric)
 {
     if ( linkStates.find(net) != linkStates.end() )
         return 1;
     Link l;
     l.state=true;
     l.net=net;
+    l.metric=metric;
     linkStates[net]=l;
 
     return 0;
 }
 
+
+
+//set link state of a single link
 int RouterStatus::setLinkState(uint32_t net, bool state)
 {
     map<int, Link>::iterator it = linkStates.find(net);
     if ( it == linkStates.end())
         return 1;
     it->second.state=state;
+    return 0;
+}
+
+//set link states of all links
+int RouterStatus::setLinkState(bool state)
+{
+    for(LinkMap::iterator it = linkStates.begin(); it != linkStates.end(); it++)
+        it->second.state=state;
     return 0;
 }
