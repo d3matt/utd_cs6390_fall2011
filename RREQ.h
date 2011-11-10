@@ -24,7 +24,8 @@ public:
     virtual string toString();
     virtual void fromString(string construct);
 
+    string serialize();
+
 };
 
 #endif /* _RREQ_H */
-

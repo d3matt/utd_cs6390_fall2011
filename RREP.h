@@ -23,7 +23,7 @@ public:
 
     virtual string toString();
     virtual void fromString(string construct);
-
+    string serialize();
 };
 
 #endif /* _RREP_H */

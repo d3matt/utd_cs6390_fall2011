@@ -11,3 +11,6 @@ void RREP::fromString(string construct)
 {
 
 }
+
+
+string RREP::serialize() { return ""; }

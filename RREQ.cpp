@@ -43,3 +43,7 @@ void RREQ::fromString(string str)
 
 }
 
+string RREQ::serialize()
+{
+    return "";
+}
