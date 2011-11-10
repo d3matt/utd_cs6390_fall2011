@@ -5,14 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include <boost/version.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/string.hpp>
-#include <boost/serialization/vector.hpp>
+#include <map>
 
 using std::string;
 using std::ostream;
@@ -24,19 +17,12 @@ class Message
 protected:
     string type;
 
-    //for serialization
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & type;
-    }
-    //end serialization
 public:
-
     Message(string type) : type(type) {}
     Message() : type("XXXX") {}
     virtual ~Message(void) {}
+
+    virtual string serialize(void) = 0;
 
     virtual string toString(void)
     {
@@ -58,33 +44,7 @@ public:
 
 };
 
-/* 
-  tracking BOOST_VERSION like this is bad, but there's not a better good way to 
-compile on cs1 + our fedora15 machines...
- */
-#if BOOST_VERSION == 103301
-BOOST_IS_ABSTRACT(Message)
-#else
-BOOST_SERIALIZATION_ASSUME_ABSTRACT(Message)
-#endif
-
-class Link {
-public:
-    uint32_t    net;
-    bool        state;
-    uint32_t    metric;
-    //for serialization
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & net & state & metric;
-    }
-    //end serialization
-};
-ostream& operator<< (ostream& out, Link l); //in RouterStatus.cpp
-
-typedef         std::map<int, Link> LinkMap;
+typedef         std::map<uint32_t, uint32_t> LinkMap;
 
 class RouterStatus : public Message
 {
@@ -97,49 +57,23 @@ private:
     //used a map to make lookups fast
     LinkMap         linkStates;
 
-    //for serialization
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & boost::serialization::base_object<Message>(*this);
-        ar & AS & routerID & neighborAS & neighborrouterID;
-        ar & linkStates;
-    }
-    //end serialization
-
 public:
     friend ostream& operator<< (ostream& out, const RouterStatus& c);
                     RouterStatus();
                     RouterStatus(int argc, char ** argv);
                     ~RouterStatus() { std::cerr << "~RouterStatus()" << std::endl; }
     int             addLink(uint32_t net, uint32_t metric=1);
-    int             setLinkState(uint32_t net, bool state);
-    int             setLinkState(bool state);
+    int             setLinkMetric(uint32_t net, uint32_t metric);
+    int             setLinkMetric(uint32_t metric);
 
     uint32_t        getAS() const {return AS;}
     LinkMap        *getLinkMap() {return &linkStates;}
+
+    //for send/recv
+                    RouterStatus(std::vector<std::string> &v);
+    string          serialize(void);
 };
 
 
-//the container class must be last
-class MessageContainer
-{
-    friend class boost::serialization::access;
-    Message * m;
-    
-    template<class Archive>
-    void serialize(Archive &ar, const unsigned int version)
-    {
-        //register Message's children
-        ar.register_type(static_cast<RouterStatus *>(NULL));
-        ar & m;
-    }
-
-public:
-    MessageContainer(Message * m) : m(m) {}
-    MessageContainer() { }
-    Message * getMessage() { return m; }
-};
 
 #endif

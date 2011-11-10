@@ -66,8 +66,8 @@ public:
         return myBuf.str();
     }
 
-    int                 sendMessage(const MessageContainer &m);
-    MessageContainer    getMessage();
+    int                 sendMessage(Message &m);
+    Message *           getMessage();
 
     friend std::ostream & operator<< (std::ostream &ostr, Socket s)
     {

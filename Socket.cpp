@@ -1,6 +1,11 @@
 
 #include <iostream>
 #include <sstream>
+
+#include <vector>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+
 using std::cout;
 
 extern "C"
@@ -139,24 +144,26 @@ int Socket::input()
     return retVal;
 }
 
-int Socket::sendMessage(const MessageContainer &m)
+int Socket::sendMessage(Message &m)
 {
-    myBuf.str("");
-    {
-        boost::archive::text_oarchive oa(myBuf);
-        oa << m;
-    }
+    myBuf.str( m.serialize() );
     return output();
 }
 
-MessageContainer Socket::getMessage()
+Message * Socket::getMessage()
 {
-    MessageContainer m;
-    if(input() >= 0)
-    {
-        boost::archive::text_iarchive ia(myBuf);
-        ia >> m;
-    }
+    Message * m = NULL;
+
+
+    if(input() <= 0)
+        return NULL;
+
+    std::vector<std::string> v;
+    std::string save(myBuf.str());
+    boost::split(v, save, boost::is_any_of(" \t\r\n"), boost::algorithm::token_compress_on );
+    if(v[0] == "LCE")
+        m = new RouterStatus(v);
+
     return m;
 }
 

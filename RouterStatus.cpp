@@ -1,21 +1,14 @@
+#include <vector>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include "Exceptions.h"
 #include "Message.h"
 
 #include "utils.h"
 #include "usage.h"
 
 using namespace std;
-
-ostream& operator<< (ostream& out, const Link l)
-{
-    out << "net:" << l.net;
-    if(l.state)
-        out << "\t(UP)";
-    else
-        out << "\t(DOWN)";
-    out << "\t" <<  l.metric;
-    out << endl;
-    return out;
-}
 
 ostream& operator<< (ostream& out, const RouterStatus& c)
 {
@@ -25,17 +18,17 @@ ostream& operator<< (ostream& out, const RouterStatus& c)
         << "neighborrouterID: " << c.neighborrouterID << endl
         << "      linkStates:"  << endl;
     for(LinkMap::const_iterator it=c.linkStates.begin(); it != c.linkStates.end(); it++)
-        out << it->second;
+        out << "net: " << it->first << "(" << it->second << ")" << endl;
     return out;
 }
 
 RouterStatus::RouterStatus()
-    : Message("RTST"), AS(99), routerID(99), neighborAS(99), neighborrouterID(99) { }
+    : Message("LCE"), AS(99), routerID(99), neighborAS(99), neighborrouterID(99) { }
 
 //RouterStatus contructor, only to be used by the main() for router.cpp
 //most of the command line parsing for router.cpp happens in this function
 RouterStatus::RouterStatus(int argc, char ** argv)
-    : Message("RTST")
+    : Message("LCE")
 {
     if(string_to_int(argv[1], AS) == NULL)
         router_usage("First argument must be an integer");
@@ -54,9 +47,6 @@ RouterStatus::RouterStatus(int argc, char ** argv)
     if(string_to_int(argv[5], neighborrouterID) == NULL)
         router_usage("Fifth argument must be an integer");
 
-    Link l;
-    l.state=true;
-    l.metric=1;
     for(int32_t i=6; i < argc; i ++)
     {
         uint32_t tmp;
@@ -66,8 +56,7 @@ RouterStatus::RouterStatus(int argc, char ** argv)
             router_usage("networks must be less than 99");
         if( linkStates.find(tmp) != linkStates.end() )
             router_usage("Don't specify duplicate networks");
-        l.net=tmp;
-        linkStates[tmp]=l;
+        linkStates[tmp]=1;
     }
 }
 
@@ -75,31 +64,57 @@ int RouterStatus::addLink(uint32_t net, uint32_t metric)
 {
     if ( linkStates.find(net) != linkStates.end() )
         return 1;
-    Link l;
-    l.state=true;
-    l.net=net;
-    l.metric=metric;
-    linkStates[net]=l;
-
+    linkStates[net]=metric;
     return 0;
 }
 
-
-
 //set link state of a single link
-int RouterStatus::setLinkState(uint32_t net, bool state)
+int RouterStatus::setLinkMetric(uint32_t net, uint32_t metric)
 {
-    map<int, Link>::iterator it = linkStates.find(net);
+    LinkMap::iterator it = linkStates.find(net);
     if ( it == linkStates.end())
         return 1;
-    it->second.state=state;
+    it->second=metric;
     return 0;
 }
 
 //set link states of all links
-int RouterStatus::setLinkState(bool state)
+int RouterStatus::setLinkMetric(uint32_t metric)
 {
     for(LinkMap::iterator it = linkStates.begin(); it != linkStates.end(); it++)
-        it->second.state=state;
+        it->second=metric;
     return 0;
+}
+
+RouterStatus::RouterStatus(vector<string> &v)
+{
+    if(v.size() < 4) 
+        throw DeserializationException("too few parameters");
+    else if(v.size() % 2 != 0)
+        throw DeserializationException("odd number of parameters");
+    type = v[0];
+    if(type != "LCE")
+        throw DeserializationException("wrong message type");
+    routerID = boost::lexical_cast<uint32_t>(v[1]);
+    neighborAS = boost::lexical_cast<uint32_t>(v[2]);
+    neighborrouterID = boost::lexical_cast<uint32_t>(v[3]);
+
+    for(uint32_t i=4; i < v.size(); i+=2)
+    {
+        linkStates[boost::lexical_cast<uint32_t>(v[i])] = boost::lexical_cast<uint32_t>(v[i+1]);
+    }
+}
+
+
+string RouterStatus::serialize(void)
+{
+    stringstream ss;
+
+    ss  << type << " "
+        << routerID << " "
+        << neighborAS << " "
+        << neighborrouterID;
+    for(LinkMap::iterator it = linkStates.begin(); it != linkStates.end(); it++)
+        ss << " " << it->first << " " << it-> second;
+    return ss.str();
 }

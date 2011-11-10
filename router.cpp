@@ -59,8 +59,7 @@ int main(int argc, char ** argv)
     {
         cout << "Sending initial status... " << flush;
         Socket s(&myAS.saddr);
-        MessageContainer m(&localStatus);
-        s.sendMessage(m);
+        s.sendMessage(localStatus);
         cout << "done" << endl;
     }
 
@@ -115,16 +114,15 @@ int main(int argc, char ** argv)
             int rc;
             if (v[0] == "DN") {
                 cout << "Bring down interface " << arg << "..." << flush;
-                rc = localStatus.setLinkState(arg, false);
+                rc = localStatus.setLinkMetric(arg, 99);
             }
             else {
                 cout << "Bring up interface " << arg << "..." << flush;
-                rc = localStatus.setLinkState(arg, true);
+                rc = localStatus.setLinkMetric(arg, 1);
             }
             if(rc == 0) {
                 Socket s(&myAS.saddr);
-                MessageContainer m(&localStatus);
-                s.sendMessage(m);
+                s.sendMessage(localStatus);
                 cout << "done" << endl;
             }
             else {
@@ -144,10 +142,11 @@ int main(int argc, char ** argv)
     }
 
     cout << endl << "Sending down status for all our links ... " << flush;
-    localStatus.setLinkState(false);
-    Socket s(&myAS.saddr);
-    MessageContainer m(&localStatus);
-    s.sendMessage(m);
+    localStatus.setLinkMetric(99);
+    {
+        Socket s(&myAS.saddr);
+        s.sendMessage(localStatus);
+    }
     cout << "done!" << endl;
 
     return 0;

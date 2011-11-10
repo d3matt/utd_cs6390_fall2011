@@ -17,4 +17,9 @@ public:
     ~easyException() throw() {}
 };
 
+class DeserializationException : public easyException {
+public:
+    DeserializationException(std::string s) : easyException(s) {}
+};
+
 #endif // __EXCEPTIONS_H__

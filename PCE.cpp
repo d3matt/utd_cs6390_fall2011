@@ -89,14 +89,14 @@ void * recvThread(void *params)
 
     while ( s->isConnected() )
     {
-        MessageContainer out;
+        Message *in;
         try {
-            out=s->getMessage();
+            in=s->getMessage();
         }
         catch (Socket::NotConnectedException e) {
             continue;
         }
-        auto_ptr<RouterStatus> r(dynamic_cast<RouterStatus *> (out.getMessage()));
+        auto_ptr<RouterStatus> r(dynamic_cast<RouterStatus *> (in));
         
         cout << "received router status: " << endl;
         cout << *r;
