@@ -161,7 +161,7 @@ Message * Socket::getMessage()
     std::vector<std::string> v;
     std::string save(myBuf.str());
     boost::split(v, save, boost::is_any_of(" \t\r\n"), boost::algorithm::token_compress_on );
-    if(v[0] == "LCE")
+    if(v[0] == "LSA")
         m = new RouterStatus(v);
 
     return m;

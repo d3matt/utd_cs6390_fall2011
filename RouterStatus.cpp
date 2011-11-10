@@ -23,12 +23,12 @@ ostream& operator<< (ostream& out, const RouterStatus& c)
 }
 
 RouterStatus::RouterStatus()
-    : Message("LCE"), AS(99), routerID(99), neighborAS(99), neighborrouterID(99) { }
+    : Message("LSA"), AS(99), routerID(99), neighborAS(99), neighborrouterID(99) { }
 
 //RouterStatus contructor, only to be used by the main() for router.cpp
 //most of the command line parsing for router.cpp happens in this function
 RouterStatus::RouterStatus(int argc, char ** argv)
-    : Message("LCE")
+    : Message("LSA")
 {
     if(string_to_int(argv[1], AS) == NULL)
         router_usage("First argument must be an integer");
@@ -93,7 +93,7 @@ RouterStatus::RouterStatus(vector<string> &v)
     else if(v.size() % 2 != 0)
         throw DeserializationException("odd number of parameters");
     type = v[0];
-    if(type != "LCE")
+    if(type != "LSA")
         throw DeserializationException("wrong message type");
     routerID = boost::lexical_cast<uint32_t>(v[1]);
     neighborAS = boost::lexical_cast<uint32_t>(v[2]);
