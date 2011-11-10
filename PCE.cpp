@@ -181,6 +181,7 @@ void * recvThread(void *params)
         }
     }
 
+    /*
     {
         MutexLocker graphLock(graphMutex);
         for(NodeMap::iterator it = myNodes.begin(); it != myNodes.end(); ++it)
@@ -208,6 +209,7 @@ void * recvThread(void *params)
         }
 
     }
+    */
 
     return NULL;
 }
