@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <sstream>
 using std::cout;
 
 extern "C"
@@ -11,10 +12,8 @@ extern "C"
 
 #   include <errno.h>
 #   include <string.h>
+#   include <stdio.h>
 }
-
-static const int CONNECTION_CLOSED = -10;
-
 
 #include "Socket.h"
 Socket::Socket(const Socket &copy)
@@ -87,6 +86,7 @@ int Socket::output()
     length = myBuf.str().length();
     
     /* I don't know why, but with large buffers, this works */
+    // does directly using the stringstream's backing store not work?
     std::string tmpStr = myBuf.str();
     const char *str = tmpStr.c_str();
     memcpy(buffer, str, length);
@@ -96,6 +96,15 @@ int Socket::output()
     if(retVal == length) {
         myBuf.ignore();
         myBuf.seekg(0, std::ios::beg);
+    }
+    else if (retVal < 0) {
+        std::stringstream ss;
+        ss << "error sending: " << errno;
+        perror("send()");
+        throw SocketException(ss.str());
+    }
+    else {
+        std::cerr << "small send" << std::endl;
     }
 
     return retVal;
@@ -107,47 +116,36 @@ int Socket::input()
 
     int retVal = recv(sockFD, buffer, 4096, 0);
 
-    if(retVal > 0) {
+    //we still got good data when the connection closes in an orderly fashion...
+    if(retVal >= 0) {
         myBuf.str(buffer);
     }
-    else if(retVal == 0)
+    else if(retVal < 0)
     {
-        retVal = CONNECTION_CLOSED;
+        strerror_r(errno, buffer, 4096);
+        throw(SocketException( string("Error in recv()") + buffer));
     }
     
     return retVal;
 }
 
-/*
-void send_MessageContainer(const MessageContainer &m, std::ostream &out)
-{
-    boost::archive::text_oarchive oa(out);
-    oa << m;
-}
-*/
-
-void Socket::sendMessage(const MessageContainer &m)
+int Socket::sendMessage(const MessageContainer &m)
 {
     myBuf.str("");
     {
         boost::archive::text_oarchive oa(myBuf);
         oa << m;
     }
-    output();
+    return output();
 }
 
 MessageContainer Socket::getMessage()
 {
     MessageContainer m;
-    int ret = input();
-    if(ret > 0)
+    if(input() >= 0)
     {
         boost::archive::text_iarchive ia(myBuf);
         ia >> m;
-    }
-    else if(ret == CONNECTION_CLOSED)
-    {
-        throw (SocketException("Connection was closed"));
     }
     return m;
 }

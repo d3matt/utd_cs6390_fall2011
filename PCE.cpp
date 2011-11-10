@@ -18,7 +18,7 @@ extern "C"
 
 #include "usage.h"
 #include "PCEconfig.h"
-#include "MessageContainer.h"
+#include "Message.h"
 #include "Socket.h"
 #include "utils.h"
 
@@ -90,16 +90,10 @@ void * recvThread(void *params)
     while (1)
     {
         MessageContainer out;
-        try
-        {
-            out=s->getMessage();
-        } catch(...)
-        {
-            break;
-        }
+        out=s->getMessage();
 
         RouterStatus * r;
-        r=(RouterStatus *) out.getMessage();
+        r=dynamic_cast<RouterStatus *> (out.getMessage());
         /*
         cout << "received router status: " << endl;
         cout << *r;

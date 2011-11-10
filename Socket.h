@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 #include "Exceptions.h"
-#include "MessageContainer.h"
+#include "Message.h"
 
 class Socket
 {
@@ -62,7 +62,7 @@ public:
         return myBuf.str();
     }
 
-    void                sendMessage(const MessageContainer &m);
+    int                 sendMessage(const MessageContainer &m);
     MessageContainer    getMessage();
 
     friend std::ostream & operator<< (std::ostream &ostr, Socket s)

@@ -1,4 +1,4 @@
-#include "RouterStatus.h"
+#include "Message.h"
 
 #include "utils.h"
 #include "usage.h"
@@ -7,11 +7,12 @@ using namespace std;
 
 ostream& operator<< (ostream& out, const Link l)
 {
-    out << "net: " << l.net;
+    out << "net:" << l.net;
     if(l.state)
-        out << " (UP)";
+        out << "\t(UP)";
     else
-        out << " (DOWN)";
+        out << "\t(DOWN)";
+    out << "\t" <<  l.metric;
     out << endl;
     return out;
 }
@@ -55,6 +56,7 @@ RouterStatus::RouterStatus(int argc, char ** argv)
 
     Link l;
     l.state=true;
+    l.metric=1;
     for(int32_t i=6; i < argc; i ++)
     {
         uint32_t tmp;
@@ -69,13 +71,14 @@ RouterStatus::RouterStatus(int argc, char ** argv)
     }
 }
 
-int RouterStatus::addLink(uint32_t net)
+int RouterStatus::addLink(uint32_t net, uint32_t metric)
 {
     if ( linkStates.find(net) != linkStates.end() )
         return 1;
     Link l;
     l.state=true;
     l.net=net;
+    l.metric=metric;
     linkStates[net]=l;
 
     return 0;
