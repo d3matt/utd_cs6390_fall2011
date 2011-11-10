@@ -31,7 +31,7 @@ protected:
     {
         ar & type;
     }
-
+    //end serialization
 public:
 
     Message(string type) : type(type) {}
@@ -59,7 +59,7 @@ public:
 };
 
 /* 
-  tracking BOOST_VERSION like this is bad, but there's not a very good way to 
+  tracking BOOST_VERSION like this is bad, but there's not a better good way to 
 compile on cs1 + our fedora15 machines...
  */
 #if BOOST_VERSION == 103301
@@ -80,6 +80,7 @@ public:
     {
         ar & net & state & metric;
     }
+    //end serialization
 };
 ostream& operator<< (ostream& out, Link l); //in RouterStatus.cpp
 
@@ -105,13 +106,16 @@ private:
         ar & AS & routerID & neighborAS & neighborrouterID;
         ar & linkStates;
     }
+    //end serialization
 
 public:
     friend ostream& operator<< (ostream& out, const RouterStatus& c);
                     RouterStatus();
                     RouterStatus(int argc, char ** argv);
+                    ~RouterStatus() { std::cerr << "~RouterStatus()" << std::endl; }
     int             addLink(uint32_t net, uint32_t metric=1);
     int             setLinkState(uint32_t net, bool state);
+    int             setLinkState(bool state);
 
     uint32_t        getAS() const {return AS;}
     LinkMap        *getLinkMap() {return &linkStates;}
@@ -127,6 +131,7 @@ class MessageContainer
     template<class Archive>
     void serialize(Archive &ar, const unsigned int version)
     {
+        //register Message's children
         ar.register_type(static_cast<RouterStatus *>(NULL));
         ar & m;
     }

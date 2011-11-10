@@ -24,7 +24,7 @@ ostream& operator<< (ostream& out, const RouterStatus& c)
         << "      neighborAS: " << c.neighborAS << endl
         << "neighborrouterID: " << c.neighborrouterID << endl
         << "      linkStates:"  << endl;
-    for(map<int, Link>::const_iterator it=c.linkStates.begin(); it != c.linkStates.end(); it++)
+    for(LinkMap::const_iterator it=c.linkStates.begin(); it != c.linkStates.end(); it++)
         out << it->second;
     return out;
 }
@@ -84,11 +84,22 @@ int RouterStatus::addLink(uint32_t net, uint32_t metric)
     return 0;
 }
 
+
+
+//set link state of a single link
 int RouterStatus::setLinkState(uint32_t net, bool state)
 {
     map<int, Link>::iterator it = linkStates.find(net);
     if ( it == linkStates.end())
         return 1;
     it->second.state=state;
+    return 0;
+}
+
+//set link states of all links
+int RouterStatus::setLinkState(bool state)
+{
+    for(LinkMap::iterator it = linkStates.begin(); it != linkStates.end(); it++)
+        it->second.state=state;
     return 0;
 }

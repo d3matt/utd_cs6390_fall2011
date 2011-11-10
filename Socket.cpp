@@ -23,7 +23,7 @@ Socket::Socket(const Socket &copy)
 }
 
 Socket::Socket(std::string host, uint16_t port) :
-    connected(false), sockFD(0)
+    connected(false), sockFD(-1)
 {
     if(host != "")
     {
@@ -42,7 +42,7 @@ Socket::Socket(std::string host, uint16_t port) :
         connectFD(&saddr);;
     }
 }
-Socket::Socket(struct sockaddr *saddr) : connected(false), sockFD(0) {
+Socket::Socket(struct sockaddr *saddr) : connected(false), sockFD(-1) {
     connectFD(saddr);
 }
 
@@ -50,13 +50,13 @@ Socket::~Socket()
 {
     if(connected) {
         close(sockFD);
-        sockFD=0;
+        sockFD=-1;
     }
 }
 
 void Socket::createFD(void)
 {
-    if(sockFD != 0)
+    if(sockFD != -1)
         throw SocketException("socket already created");
     if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         throw( SocketException("Failed to create a socket") );
@@ -67,7 +67,7 @@ void Socket::connectFD(struct sockaddr * saddr)
 {
     if(connected)
         throw SocketException("already connected");
-    if(sockFD == 0) {
+    if(sockFD == -1) {
         createFD();
     }
 
@@ -114,16 +114,26 @@ int Socket::input()
 {
     char buffer[4096];
 
+    if (!connected)
+    {
+        throw(NotConnectedException() );
+    }
+
     int retVal = recv(sockFD, buffer, 4096, 0);
 
-    //we still got good data when the connection closes in an orderly fashion...
-    if(retVal >= 0) {
+    if(retVal > 0) {
         myBuf.str(buffer);
     }
     else if(retVal < 0)
     {
         strerror_r(errno, buffer, 4096);
-        throw(SocketException( string("Error in recv()") + buffer));
+        throw SocketException( string("Error in recv()") + buffer);
+    }
+    if (retVal == 0) {
+        connected=false;
+        close(sockFD);
+        sockFD=-1;
+        throw NotConnectedException();
     }
     
     return retVal;

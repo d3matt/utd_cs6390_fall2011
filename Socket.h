@@ -30,7 +30,11 @@ public:
     Socket(int sockFD) : connected(true), sockFD(sockFD) {}
     Socket(struct sockaddr * psaddr);
     ~Socket();
+    bool isConnected() { return connected; }
 
+    struct NotConnectedException : public easyException {
+        NotConnectedException() : easyException("Not Connected") {}
+    } ;
     struct SocketException : public easyException {
         SocketException(std::string s) : easyException(s) {}
     } ;

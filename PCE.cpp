@@ -87,17 +87,20 @@ void * recvThread(void *params)
     EdgeMap myEdges;
     NodeMap myNodes;
 
-    while (1)
+    while ( s->isConnected() )
     {
         MessageContainer out;
-        out=s->getMessage();
-
-        RouterStatus * r;
-        r=dynamic_cast<RouterStatus *> (out.getMessage());
-        /*
+        try {
+            out=s->getMessage();
+        }
+        catch (Socket::NotConnectedException e) {
+            continue;
+        }
+        auto_ptr<RouterStatus> r(dynamic_cast<RouterStatus *> (out.getMessage()));
+        
         cout << "received router status: " << endl;
         cout << *r;
-        */
+        
 
         for(LinkMap::iterator it = r->getLinkMap()->begin();
             it != r->getLinkMap()->end(); ++it)
@@ -202,7 +205,7 @@ void * recvThread(void *params)
         }
 
     }
-
+    cerr << "thread exit" << endl;
     return NULL;
 }
 

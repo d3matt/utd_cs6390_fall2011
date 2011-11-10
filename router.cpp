@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
+#include <signal.h>
 
 #include <vector>
 #include <boost/lexical_cast.hpp>
@@ -27,6 +28,15 @@ void ui_help(string message="")
         << " UP <net>" << endl
         << " DN <net>" << endl
         << " LI" << endl;
+}
+
+bool stopping=false;
+
+void signal_death( int sig, siginfo_t *info, void *ctxt )
+{
+    cout << "Shutting down" << endl;
+    stopping=true;
+    close(0); //close stdin so getline() will return
 }
 
 int main(int argc, char ** argv)
@@ -54,9 +64,21 @@ int main(int argc, char ** argv)
         cout << "done" << endl;
     }
 
+    {
+        struct sigaction action;
+        action.sa_flags     = SA_SIGINFO | SA_RESTART;
+        sigemptyset( &action.sa_mask );
+
+        action.sa_sigaction = signal_death;
+        sigaction( SIGHUP, &action, 0 );
+        sigaction( SIGINT, &action, 0 );
+        sigaction( SIGTERM, &action, 0 );
+        sigaction( SIGQUIT, &action, 0 );
+    }
+
     cout << endl << endl;
     ui_help();
-    while (1) {
+    while (!stopping) {
         string line;
         uint32_t arg;
         cout << "> ";
@@ -120,6 +142,13 @@ int main(int argc, char ** argv)
             ui_help( string("Unknown command: ") + v[0]);
         }
     }
+
+    cout << endl << "Sending down status for all our links ... " << flush;
+    localStatus.setLinkState(false);
+    Socket s(&myAS.saddr);
+    MessageContainer m(&localStatus);
+    s.sendMessage(m);
+    cout << "done!" << endl;
 
     return 0;
 }
