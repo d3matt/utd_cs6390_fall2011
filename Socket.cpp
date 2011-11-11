@@ -7,6 +7,8 @@
 #include <boost/algorithm/string.hpp>
 
 using std::cout;
+using std::cerr;
+using std::endl;
 
 extern "C"
 {
@@ -95,6 +97,10 @@ int Socket::output()
     std::string tmpStr = myBuf.str();
     const char *str = tmpStr.c_str();
     memcpy(buffer, str, length);
+    buffer[length]=0;
+    length++;
+
+    cerr << "Sending: '" << buffer << "'" << endl;
 
     int retVal = send(sockFD, buffer, length, 0);
 
