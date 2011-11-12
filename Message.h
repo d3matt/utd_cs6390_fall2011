@@ -5,9 +5,11 @@
 #include <stdint.h>
 
 #include <iostream>
-#include <string>
-#include <vector>
+#include <list>
 #include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 using std::string;
 using std::vector;
@@ -15,6 +17,8 @@ using std::ostream;
 
 namespace cs6390
 {
+
+class Socket;
 
 class Message
 {
@@ -27,26 +31,13 @@ public:
     Message() : type("XXXX") {}
     virtual ~Message(void) {}
 
-    virtual string serialize(void) = 0;
+    virtual string serialize(bool readable=false) const = 0;
 
-    virtual string toString(void)
-    {
-        return type;
-    }
-
-    virtual void fromString(string construct) {}
-
-    friend ostream & operator<< (ostream &ostr, Message *msg)
-    {
-        ostr << msg->toString();
-        return ostr;
-    }
-
-    friend void operator>> (string str, Message *msg)
-    {
-        msg->fromString(str);
-    }
+    static int test_catch(short port);
+    static int test(Socket &sock);
 };
+ostream& operator<< (ostream& out, const Message *m);
+
 
 typedef         std::map<uint32_t, uint32_t> LinkMap;
 
@@ -76,25 +67,22 @@ public:
 
     //for send/recv
                     RouterStatus(vector<string> &v);
-    string          serialize(void);
+    string          serialize(bool readable=false) const;
     static int test(short port);
 };
 
 class RREQ : public Message
 {
 public:
-    uint32_t source;
-    uint32_t dest;
+    uint32_t    source;
+    uint32_t    dest;
+                RREQ(int32_t source=0xff, int32_t dest=0xff) :
+                    Message("RREQ"), source(source), dest(dest) {}
+                RREQ(vector<string> &v);
+    string      serialize(bool readable=false) const;
 
-    RREQ(int32_t source=0xff, int32_t dest=0xff) :
-        Message("RREQ"), source(source), dest(dest) {}
-
-            RREQ(vector<string> &v);
-    string  serialize();
-
-    static int test(short port);
+    static int  test(short port);
 };
-ostream& operator<< (ostream& out, const RREQ& c);
 
 class BGP : public Message
 {
@@ -105,11 +93,56 @@ public:
 
             BGP() : Message("BGP"), AS(0xff), AS_hops(0xff) {}
             BGP(vector<string> &v);
-    string  serialize();
+    string  serialize(bool readable=false) const;
 
     static int test(short port);
 };
-ostream& operator<< (ostream& out, const BGP& c);
+
+class RRES : public Message
+{
+public:
+    vector<uint32_t> routers;
+    
+            RRES() : Message("RRES") {}
+            RRES(vector<string> &v);
+    string  serialize(bool readable=false) const;
+
+    static int test(short port);
+};
+
+class IRRQ : public Message
+{
+public:
+    uint32_t AS;
+    uint32_t dest_net;
+
+            IRRQ(int32_t AS=0xff, int32_t dest_net=0xff) :
+                Message("IRRQ"), AS(AS), dest_net(dest_net) {}
+            IRRQ(vector<string> &v);
+    string  serialize(bool readable=false) const;
+
+    static int test(short port);
+};
+
+typedef std::pair <uint32_t,vector<uint32_t> > ASroute;
+
+class IRRS : public Message
+{
+public:
+    std::list<ASroute>  ASlist;
+    bool                blank;
+
+            IRRS() : Message("IRRS") {}
+            IRRS(vector<string> &v);
+    string  serialize(bool readable=false) const;
+
+    static int test_route(short port);
+    static int test_blk(short port);
+    static int test(short port);
+};
+
+
+
 
 }   //namespace cs6390
 

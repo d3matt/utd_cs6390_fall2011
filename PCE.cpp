@@ -23,6 +23,7 @@ extern "C"
 #include "utils.h"
 
 using namespace std;
+using namespace cs6390;
 
 typedef pair<uint32_t, uint32_t> Edge;
 
@@ -80,9 +81,9 @@ void pdie(const char * msg, int rc=1)
 void * recvThread(void *params)
 {
     Socket *s = ((recvThreadParams_t *)params)->s;
-    pthread_mutex_t *edgeMutex = ((recvThreadParams_t *)params)->edgeMutex;
-    pthread_mutex_t *nodeMutex = ((recvThreadParams_t *)params)->nodeMutex;
-    pthread_mutex_t *graphMutex = ((recvThreadParams_t *)params)->graphMutex;
+    //pthread_mutex_t *edgeMutex = ((recvThreadParams_t *)params)->edgeMutex;
+    //pthread_mutex_t *nodeMutex = ((recvThreadParams_t *)params)->nodeMutex;
+    //pthread_mutex_t *graphMutex = ((recvThreadParams_t *)params)->graphMutex;
 
     EdgeMap myEdges;
     NodeMap myNodes;
@@ -101,7 +102,7 @@ void * recvThread(void *params)
         cout << "received router status: " << endl;
         cout << *r;
         
-
+/*
         for(LinkMap::iterator it = r->getLinkMap()->begin();
             it != r->getLinkMap()->end(); ++it)
         {
@@ -176,6 +177,8 @@ void * recvThread(void *params)
                 }
             }
         }
+    */
+
     }
 
     /*
@@ -370,5 +373,7 @@ int main(int argc, char ** argv)
         delete *it;
     }
 */
+
+    return 0;
 
 }

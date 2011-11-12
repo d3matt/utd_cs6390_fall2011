@@ -108,8 +108,7 @@ RouterStatus::RouterStatus(vector<string> &v)
     }
 }
 
-
-string RouterStatus::serialize(void)
+string RouterStatus::serialize(bool readable) const
 {
     stringstream ss;
 
@@ -117,7 +116,7 @@ string RouterStatus::serialize(void)
         << routerID << " "
         << neighborAS << " "
         << neighborrouterID;
-    for(LinkMap::iterator it = linkStates.begin(); it != linkStates.end(); it++)
+    for(LinkMap::const_iterator it = linkStates.begin(); it != linkStates.end(); it++)
         ss << " " << it->first << " " << it-> second;
     return ss.str();
 }

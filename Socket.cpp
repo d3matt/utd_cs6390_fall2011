@@ -169,6 +169,12 @@ Message * Socket::getMessage()
         m = new RREQ(v);
     else if(v[0] == "BGP" )
         m = new BGP(v);
+    else if(v[0] == "RRES" )
+        m = new RRES(v);
+    else if(v[0] == "IRRQ" )
+        m = new IRRQ(v);
+    else if(v[0] == "IRRS" )
+        m = new IRRS(v);
     else
         cerr << "Unknown message type: " << v[0] << endl;
 

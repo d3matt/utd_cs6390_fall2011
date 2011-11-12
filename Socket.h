@@ -48,27 +48,6 @@ public:
         output();
     }
 
-    template <typename T>
-    void sendToSocket(T *t)
-    {
-        myBuf.str(t->toString());
-        output();
-    }
-
-    template <typename T>
-    Socket & operator<< (T *t)
-    {
-        myBuf << t->toString();
-        output();
-        return (*this);
-    }
-
-    std::string receiveFromSocket()
-    {
-        input();
-        return myBuf.str();
-    }
-
     int                 sendMessage(Message &m);
     Message *           getMessage();
 

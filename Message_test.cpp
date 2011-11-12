@@ -1,8 +1,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <list>
 #include <memory>
 #include <map>
+#include <utility>
 #include <boost/lexical_cast.hpp>
 
 #include "Message.h"
@@ -14,7 +16,7 @@ using namespace cs6390;
 #define UPAR "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 #define DNAR "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
 
-typedef map<string, int (*)(short)> funcMap;
+typedef list< pair <string, int (*)(short)> > funcList;
 int main(int argc, char ** argv)
 {
     uint32_t port;
@@ -23,14 +25,17 @@ int main(int argc, char ** argv)
     else
         port = 31337;
     int rc, retval=0;
-    funcMap fmap;
+    funcList flist;
 
-    //unit tests are not necessarily run in this order...
-    fmap["LSA"]  = &RouterStatus::test;
-    fmap["RREQ"] = &RREQ::test;
-    fmap["BGP"]  = &BGP::test;
+    flist.push_back( make_pair("MESSAGE", &Message::test_catch) );
+    flist.push_back( make_pair("LSA",     &RouterStatus::test) );
+    flist.push_back( make_pair("RREQ",    &RREQ::test) );
+    flist.push_back( make_pair("BGP",     &BGP::test) );
+    flist.push_back( make_pair("RRES",    &RRES::test) );
+    flist.push_back( make_pair("IRRQ",    &IRRQ::test) );
+    flist.push_back( make_pair("IRRS",    &IRRS::test) );
 
-    for(funcMap::const_iterator it = fmap.begin() ; it != fmap.end(); it++ )
+    for(funcList::const_iterator it = flist.begin() ; it != flist.end(); it++ )
     {
         cout << DASH << endl;
         cout << "    Begin " << it->first << " test" << endl;
