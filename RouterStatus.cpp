@@ -13,17 +13,6 @@ using namespace std;
 
 namespace cs6390
 {
-ostream& operator<< (ostream& out, const RouterStatus& c)
-{
-    out << "              AS: " << c.AS << endl
-        << "        routerID: " << c.routerID << endl
-        << "      neighborAS: " << c.neighborAS << endl
-        << "neighborrouterID: " << c.neighborrouterID << endl
-        << "      linkStates:"  << endl;
-    for(LinkMap::const_iterator it=c.linkStates.begin(); it != c.linkStates.end(); it++)
-        out << "net: " << it->first << "(" << it->second << ")" << endl;
-    return out;
-}
 
 RouterStatus::RouterStatus()
     : Message("LSA"), AS(99), routerID(99), neighborAS(99), neighborrouterID(99) { }
@@ -112,12 +101,21 @@ string RouterStatus::serialize(bool readable) const
 {
     stringstream ss;
 
-    ss  << type << " "
-        << routerID << " "
-        << neighborAS << " "
-        << neighborrouterID;
-    for(LinkMap::const_iterator it = linkStates.begin(); it != linkStates.end(); it++)
-        ss << " " << it->first << " " << it-> second;
+    ss  << type << " ";
+    if(readable) ss << endl << " routerID: ";
+    ss  << routerID << " ";
+    if(readable) ss << endl << " neighborAS: ";
+    ss  << neighborAS << " ";
+    if(readable) ss << endl << " neighborrouterID: ";
+    ss  << neighborrouterID;
+    if(readable) ss << endl << " linkStates: " << endl;
+    for(LinkMap::const_iterator it = linkStates.begin(); it != linkStates.end(); it++) {
+        if(readable) ss << "net: ";
+        ss << " " << it->first << " ";
+        if(readable) ss << "(";
+        ss << it-> second;
+        if(readable) ss << ")" << endl;
+    }
     return ss.str();
 }
 
@@ -127,25 +125,11 @@ int RouterStatus::test(short port)
     {
         RouterStatus out;
         out.addLink(1,1);
+        out.addLink(5,1);
+        out.addLink(9,99);
         sock.sendMessage(out);
     }
-
-    Message *m = sock.getMessage();
-    if(m != NULL) {
-        try {
-            auto_ptr<RouterStatus> in(dynamic_cast<RouterStatus *> (m));
-            cout << *in;
-        }
-        catch (...) {
-            cerr << "failed to dynamic cast" << endl;
-            return -1;
-        }
-    }
-    else {
-        cerr << "getMessage() failed" << endl;
-        return -1;
-    }
-    return 0;
+    return Message::test(sock);
 }
 
 } //cs6390
