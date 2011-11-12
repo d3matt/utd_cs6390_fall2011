@@ -1,16 +1,24 @@
 #!/usr/bin/env python
-import subprocess
-import time
+import sys, time
 import pexpect
 
 print "Spawning echoserv"
-p=subprocess.Popen("./echoserv 12543", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+p=pexpect.spawn("./echoserv 12543")
 print "Spawning Message_test"
-m=subprocess.Popen("./Message_test", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+m=pexpect.spawn("./Message_test")
 
 time.sleep(2)
 
 print "Showing test results"
-print p.stdout.read()
-print m.stdout.read()
-p.kill()
+print m.read()
+
+if m.isalive():
+    m.wait()
+
+print "RC: %d" % (m.exitstatus)
+
+print "Showing echo serv results"
+p.terminate()
+print p.read()
+
+sys.exit(m.exitstatus)

@@ -73,5 +73,10 @@ dist:
 	cp *.cpp *.h README Makefile project
 	zip project.zip project/*
 
+message_unit_test: echoserv Message_test
+	python message_test.py
+
+tests: message_unit_test
+
 
 -include .depend/*.d

@@ -2,6 +2,8 @@
 #ifndef _MESSAGE_H
 #define _MESSAGE_H
 
+#include <stdint.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
