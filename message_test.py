@@ -4,6 +4,7 @@ import pexpect
 
 print "Spawning echoserv"
 p=pexpect.spawn("./echoserv 12543")
+time.sleep(1) #sleep so we're sure echoserv is up...
 print "Spawning Message_test"
 m=pexpect.spawn("./Message_test 12543")
 
