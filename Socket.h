@@ -8,6 +8,9 @@
 #include "Exceptions.h"
 #include "Message.h"
 
+namespace cs6390
+{
+
 class Socket
 {
 protected:
@@ -86,6 +89,8 @@ public:
     ListenSocket(uint16_t port);
     Socket acceptConnection();
 };
+
+} //cs6390
 
 #endif /* __SOCKET_H__ */
 

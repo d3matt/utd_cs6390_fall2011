@@ -13,6 +13,9 @@
 
 using namespace std;
 
+namespace cs6390
+{
+
 class PCEconfig
 {
 private:
@@ -29,5 +32,7 @@ public:
     AS  getAS(const uint32_t ASno);
     AS  getAS(const RouterStatus& r) { return getAS( r.getAS() ); }
 };
+
+} //cs6390
 
 #endif // __PCECONFIG_H__

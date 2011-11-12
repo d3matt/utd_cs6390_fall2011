@@ -10,6 +10,8 @@
 #include "utils.h"
 #include "PCEconfig.h"
 
+namespace cs6390
+{
 
 PCEconfig::PCEconfig(const char* filename)
 : filename(filename)
@@ -84,3 +86,5 @@ AS PCEconfig::getAS(const uint32_t ASno)
     }
     return it->second;
 }
+
+} //cs6390

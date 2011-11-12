@@ -9,6 +9,8 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::string;
+using std::vector;
 
 extern "C"
 {
@@ -23,13 +25,17 @@ extern "C"
 }
 
 #include "Socket.h"
+
+namespace cs6390
+{
+
 Socket::Socket(const Socket &copy)
 {
     this->connected=copy.connected;
     this->sockFD=copy.sockFD;
 }
 
-Socket::Socket(std::string host, uint16_t port) :
+Socket::Socket(string host, uint16_t port) :
     connected(false), sockFD(-1)
 {
     if(host != "")
@@ -87,22 +93,10 @@ void Socket::connectFD(struct sockaddr * saddr)
 
 int Socket::output()
 {
-    int length;
-    char buffer[1024];
-
-    length = myBuf.str().length();
-    
-    /* I don't know why, but with large buffers, this works */
-    // does directly using the stringstream's backing store not work?
-    std::string tmpStr = myBuf.str();
-    const char *str = tmpStr.c_str();
-    memcpy(buffer, str, length);
-    buffer[length]=0;
-    length++;
-
-    cerr << "Sending: '" << buffer << "'" << endl;
-
-    int retVal = send(sockFD, buffer, length, 0);
+    //don't forget to add 1 for \0
+    int length = myBuf.str().length()+1;
+    cerr << "Sending: '" << myBuf.str() << "'" << endl;
+    int retVal = send(sockFD, myBuf.str().c_str(), length , 0);
 
     if(retVal == length) {
         myBuf.ignore();
@@ -115,7 +109,7 @@ int Socket::output()
         throw SocketException(ss.str());
     }
     else {
-        std::cerr << "small send" << std::endl;
+        cerr << "Odd send...  expected: " << length  << " sent: " << retVal << endl;
     }
 
     return retVal;
@@ -127,6 +121,7 @@ int Socket::input()
 
     if (!connected)
     {
+        cerr << __FILE__"," << __LINE__ << endl;
         throw(NotConnectedException() );
     }
 
@@ -144,6 +139,7 @@ int Socket::input()
         connected=false;
         close(sockFD);
         sockFD=-1;
+        cerr << __FILE__"," << __LINE__ << endl;
         throw NotConnectedException();
     }
     
@@ -164,11 +160,17 @@ Message * Socket::getMessage()
     if(input() <= 0)
         return NULL;
 
-    std::vector<std::string> v;
-    std::string save(myBuf.str());
+    vector<string> v;
+    string save(myBuf.str());
     boost::split(v, save, boost::is_any_of(" \t\r\n"), boost::algorithm::token_compress_on );
     if(v[0] == "LSA")
         m = new RouterStatus(v);
+    else if(v[0] == "RREQ")
+        m = new RREQ(v);
+    else if(v[0] == "BGP" )
+        m = new BGP(v);
+    else
+        cerr << "Unknown message type: " << v[0] << endl;
 
     return m;
 }
@@ -210,3 +212,5 @@ Socket ListenSocket::acceptConnection()
     Socket s(newFD);
     return s;
 }
+
+} //cs6390

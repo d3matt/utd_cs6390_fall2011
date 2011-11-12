@@ -5,6 +5,9 @@
 #include "Message.h"
 #include "Path.h"
 
+namespace cs6390
+{
+
 class RREP : public Message
 {
 private:
@@ -25,5 +28,7 @@ public:
     virtual void fromString(string construct);
     string serialize();
 };
+
+} //cs6390
 
 #endif /* _RREP_H */

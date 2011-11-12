@@ -10,8 +10,11 @@
 #include <map>
 
 using std::string;
+using std::vector;
 using std::ostream;
-using std::istream;
+
+namespace cs6390
+{
 
 class Message
 {
@@ -43,11 +46,11 @@ public:
     {
         msg->fromString(str);
     }
-
 };
 
 typedef         std::map<uint32_t, uint32_t> LinkMap;
 
+//aka LSA
 class RouterStatus : public Message
 {
 private:
@@ -63,7 +66,7 @@ public:
     friend ostream& operator<< (ostream& out, const RouterStatus& c);
                     RouterStatus();
                     RouterStatus(int argc, char ** argv);
-                    ~RouterStatus() { std::cerr << "~RouterStatus()" << std::endl; }
+                    ~RouterStatus() { }
     int             addLink(uint32_t net, uint32_t metric=1);
     int             setLinkMetric(uint32_t net, uint32_t metric);
     int             setLinkMetric(uint32_t metric);
@@ -72,10 +75,43 @@ public:
     LinkMap        *getLinkMap() {return &linkStates;}
 
     //for send/recv
-                    RouterStatus(std::vector<std::string> &v);
+                    RouterStatus(vector<string> &v);
     string          serialize(void);
+    static int test(short port);
 };
 
+class RREQ : public Message
+{
+public:
+    uint32_t source;
+    uint32_t dest;
+
+    RREQ(int32_t source=0xff, int32_t dest=0xff) :
+        Message("RREQ"), source(source), dest(dest) {}
+
+            RREQ(vector<string> &v);
+    string  serialize();
+
+    static int test(short port);
+};
+ostream& operator<< (ostream& out, const RREQ& c);
+
+class BGP : public Message
+{
+public:
+    uint32_t AS;
+    uint32_t AS_hops;
+    vector<uint32_t> nets;
+
+            BGP() : Message("BGP"), AS(0xff), AS_hops(0xff) {}
+            BGP(vector<string> &v);
+    string  serialize();
+
+    static int test(short port);
+};
+ostream& operator<< (ostream& out, const BGP& c);
+
+}   //namespace cs6390
 
 
 #endif

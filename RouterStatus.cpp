@@ -4,12 +4,15 @@
 
 #include "Exceptions.h"
 #include "Message.h"
+#include "Socket.h"
 
 #include "utils.h"
 #include "usage.h"
 
 using namespace std;
 
+namespace cs6390
+{
 ostream& operator<< (ostream& out, const RouterStatus& c)
 {
     out << "              AS: " << c.AS << endl
@@ -118,3 +121,32 @@ string RouterStatus::serialize(void)
         ss << " " << it->first << " " << it-> second;
     return ss.str();
 }
+
+int RouterStatus::test(short port)
+{
+    Socket sock("localhost", port);
+    {
+        RouterStatus out;
+        out.addLink(1,1);
+        sock.sendMessage(out);
+    }
+
+    Message *m = sock.getMessage();
+    if(m != NULL) {
+        try {
+            auto_ptr<RouterStatus> in(dynamic_cast<RouterStatus *> (m));
+            cout << *in;
+        }
+        catch (...) {
+            cerr << "failed to dynamic cast" << endl;
+            return -1;
+        }
+    }
+    else {
+        cerr << "getMessage() failed" << endl;
+        return -1;
+    }
+    return 0;
+}
+
+} //cs6390

@@ -18,6 +18,7 @@
 #include "utils.h"
 
 using namespace std;
+using namespace cs6390;
 
 void ui_help(string message="")
 {

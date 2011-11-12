@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    /* set SO_REUSEADDR so echoserv will be able to be re-run instantly on shutdown */
     if(setsockopt(list_s, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
         fprintf(stderr, "ECHOSERV: Error setting SO_REUSEADDR");
         close(list_s);
