@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
     cout << pConfig;
     cout << "localStatus (before serialization): " << endl;
 
-    cout << localStatus;
+    cout << &localStatus;
 
     AS myAS=pConfig.getAS(localStatus);
 
@@ -132,7 +132,7 @@ int main(int argc, char ** argv)
             }
         }
         else if(v[0] == "LI") {
-            cout << localStatus;
+            cout << &localStatus;
         }
         else if(v[0] == "") {
             continue;

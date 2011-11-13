@@ -100,7 +100,7 @@ void * recvThread(void *params)
         auto_ptr<RouterStatus> r(dynamic_cast<RouterStatus *> (in));
         
         cout << "received router status: " << endl;
-        cout << *r;
+        cout << r.get();
         
 /*
         for(LinkMap::iterator it = r->getLinkMap()->begin();
