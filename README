@@ -1,24 +1,19 @@
 compile steps (on cs1, cs2, etc)
     make
 
-TODO: make tests (use screen/pexpect?)
+if you've got pexpect installed, try:
+    make tests
 
 
 Notes on serialization:
-    We used the boost libraries for several tasks in this project, but the most
-non-obvious code involves our serialization.  Every message we want to send has
-an associated class which inherits from our class Message.  Message could be an
-almost empty class due to RTTI, but we put a type field for easier debugging.
-Each class has a member function called serialize that is used to fully save
-the state of the class.  To fully describe the state of a class, every member
-must be "archived".  Function pointers, FDs, etc are not "archived".  For the
-derived classes of Message, the base object must also be serialized. To allow
-for polymorphic behavior, a simple container class is used which merely has a
-Message *.  However, any type that might be sent in the container must be
-registered.  The boost serialization templates then adds code to convert
-everything to text which we then send over our simple socket class.  On the
-receiving end, we merely use dynamic_cast to give us a pointer to the
-deserialized class.
+    Every message sent has a corresponding class, all of which derive from the
+base Message class. Each message class has two common function:
+ * serialize() - returns a string representation of the class
+ * constructor(vector<string>) - deserialization from the string
 
-For more info on boost serialization, see:
-http://www.boost.org/doc/libs/1_33_1/libs/serialization/doc/index.html
+The socket class has two functions related to messages:
+ * sendMessage() - calls serialize and sends the string over the socket
+ * getMessage() - splits the incoming text by whitespace and call the correct
+constructor; returns null if the message type of the incoming message is unkown
+
+Note: the first field of a serialized message is always the type of the message
