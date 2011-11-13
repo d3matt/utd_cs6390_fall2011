@@ -30,7 +30,7 @@ public:
         } ;
 
     AS  getAS(const uint32_t ASno);
-    AS  getAS(const RouterStatus& r) { return getAS( r.getAS() ); }
+    AS  getAS(const LSA& r) { return getAS( r.getAS() ); }
 };
 
 } //cs6390

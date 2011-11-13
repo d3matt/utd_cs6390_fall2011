@@ -166,7 +166,7 @@ Message * Socket::getMessage()
     string save(myBuf.str());
     boost::split(v, save, boost::is_any_of(" \t\r\n"), boost::algorithm::token_compress_on );
     if(v[0] == "LSA")
-        m = new RouterStatus(v);
+        m = new LSA(v);
     else if(v[0] == "RREQ")
         m = new RREQ(v);
     else if(v[0] == "BGP" )

@@ -97,7 +97,7 @@ void * recvThread(void *params)
         catch (Socket::NotConnectedException e) {
             continue;
         }
-        auto_ptr<RouterStatus> r(dynamic_cast<RouterStatus *> (in));
+        auto_ptr<LSA> r(dynamic_cast<LSA *> (in));
         
         cout << "received router status: " << endl;
         cout << r.get();

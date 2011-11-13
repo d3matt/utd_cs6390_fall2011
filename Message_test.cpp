@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
     funcList flist;
 
     flist.push_back( make_pair("MESSAGE", &Message::test_catch) );
-    flist.push_back( make_pair("LSA",     &RouterStatus::test) );
+    flist.push_back( make_pair("LSA",     &LSA::test) );
     flist.push_back( make_pair("RREQ",    &RREQ::test) );
     flist.push_back( make_pair("BGP",     &BGP::test) );
     flist.push_back( make_pair("RRES",    &RRES::test) );

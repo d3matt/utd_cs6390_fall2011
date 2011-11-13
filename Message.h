@@ -41,8 +41,7 @@ ostream& operator<< (ostream& out, const Message *m);
 
 typedef         std::map<uint32_t, uint32_t> LinkMap;
 
-//aka LSA
-class RouterStatus : public Message
+class LSA : public Message
 {
 private:
     uint32_t        AS;
@@ -54,10 +53,10 @@ private:
     LinkMap         linkStates;
 
 public:
-    friend ostream& operator<< (ostream& out, const RouterStatus& c);
-                    RouterStatus();
-                    RouterStatus(int argc, char ** argv);
-                    ~RouterStatus() { }
+    friend ostream& operator<< (ostream& out, const LSA& c);
+                    LSA();
+                    LSA(int argc, char ** argv);
+                    ~LSA() { }
     int             addLink(uint32_t net, uint32_t metric=1);
     int             setLinkMetric(uint32_t net, uint32_t metric);
     int             setLinkMetric(uint32_t metric);
@@ -66,7 +65,7 @@ public:
     LinkMap        *getLinkMap() {return &linkStates;}
 
     //for send/recv
-                    RouterStatus(vector<string> &v);
+                    LSA(vector<string> &v);
     string          serialize(bool readable=false) const;
     static int test(short port);
 };

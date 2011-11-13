@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
     else if(argc < 7)
         router_usage("invalid number of arguments");
 
-    RouterStatus localStatus(argc, argv);
+    LSA localStatus(argc, argv);
     PCEconfig pConfig(argv[3]);
 
     cout << pConfig;
