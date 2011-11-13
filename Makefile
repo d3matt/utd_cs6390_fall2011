@@ -2,6 +2,8 @@ CC=gcc
 CXX=g++
 LD=$(CXX)
 CFLAGS=-Wall -g -fexceptions -O2 -fno-guess-branch-probability
+#uncomment to enable debug messages
+#CFLAGS+=-DPROJ_DEBUG
 LDFLAGS=-lpthread
 
 ifeq ($(HIDE),)

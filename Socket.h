@@ -8,6 +8,10 @@
 #include "Exceptions.h"
 #include "Message.h"
 
+#ifdef PROJ_DEBUG
+#define SOCKET_DEBUG
+#endif
+
 namespace cs6390
 {
 

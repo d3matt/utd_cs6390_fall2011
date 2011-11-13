@@ -95,7 +95,9 @@ int Socket::output()
 {
     //don't forget to add 1 for \0
     int length = myBuf.str().length()+1;
+#ifdef SOCKET_DEBUG
     cerr << "Sending: '" << myBuf.str() << "'" << endl;
+#endif
     int retVal = send(sockFD, myBuf.str().c_str(), length , 0);
 
     if(retVal == length) {
