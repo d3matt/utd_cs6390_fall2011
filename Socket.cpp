@@ -45,7 +45,7 @@ Socket::Socket(string host, uint16_t port) :
         struct sockaddr_in  saddr_in;
         struct sockaddr     saddr; };
         if( (h_server = gethostbyname(host.c_str())) == NULL) {
-            throw( SocketException("Failed to find host") );
+            THROW_SE("Failed to find host");
         }
 
         saddr_in.sin_family = AF_INET;
@@ -70,22 +70,22 @@ Socket::~Socket()
 void Socket::createFD(void)
 {
     if(sockFD != -1)
-        throw SocketException("socket already created");
+        THROW_SE("socket already created");
     if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        throw( SocketException("Failed to create a socket") );
+        THROW_SE("Failed to create a socket");
     }
 }
 
 void Socket::connectFD(struct sockaddr * saddr)
 {
     if(connected)
-        throw SocketException("already connected");
+        THROW_SE("already connected");
     if(sockFD == -1) {
         createFD();
     }
 
     if( connect( sockFD, saddr, sizeof(sockaddr)) < 0) {
-        throw( SocketException("Failed to connect to socket") );
+        THROW_SE("Failed to connect to socket");
     }
 
     connected = true;
@@ -108,7 +108,7 @@ int Socket::output()
         std::stringstream ss;
         ss << "error sending: " << errno;
         perror("send()");
-        throw SocketException(ss.str());
+        THROW_SE(ss.str());
     }
     else {
         cerr << "Odd send...  expected: " << length  << " sent: " << retVal << endl;
@@ -124,7 +124,7 @@ int Socket::input()
     if (!connected)
     {
         cerr << __FILE__"," << __LINE__ << endl;
-        throw(NotConnectedException() );
+        THROW_NC;
     }
 
     int retVal = recv(sockFD, buffer, 4096, 0);
@@ -135,14 +135,14 @@ int Socket::input()
     else if(retVal < 0)
     {
         strerror_r(errno, buffer, 4096);
-        throw SocketException( string("Error in recv()") + buffer);
+        THROW_SE( string("Error in recv()") + buffer );
     }
     if (retVal == 0) {
         connected=false;
         close(sockFD);
         sockFD=-1;
         cerr << __FILE__"," << __LINE__ << endl;
-        throw NotConnectedException();
+        THROW_NC;
     }
     
     return retVal;
@@ -191,14 +191,14 @@ ListenSocket::ListenSocket(uint16_t port)
     servaddr.sin_addr.s_addr    = htonl(INADDR_ANY);
 
     if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        throw( SocketException("Failed to create a socket") );
+        THROW_SE("Failed to create a socket");
     }
     if( bind( sockFD, (const sockaddr *)&servaddr, sizeof(servaddr) ) ) {
-        throw( SocketException("Failed to bind socket") );
+        THROW_SE("Failed to bind socket");
     }
     if( listen(sockFD, 5) < 0 )
     {
-        throw( SocketException("Failed to listen on socket") );
+        THROW_SE("Failed to listen on socket");
     }
 }
 

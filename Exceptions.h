@@ -14,6 +14,12 @@ public:
     }
     easyException(): s("") {}
     easyException(std::string s) : s(s) {}
+    easyException(std::string msg, const char * f, uint32_t l)
+    {
+        std::stringstream ss;
+        ss << msg << " (" << f << ":" << l << ")";
+        s=ss.str();
+    }
     ~easyException() throw() {}
 };
 

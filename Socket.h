@@ -12,6 +12,9 @@
 #define SOCKET_DEBUG
 #endif
 
+#define THROW_NC throw NotConnectedException(__FILE__,__LINE__)
+#define THROW_SE(msg) throw SocketException(msg,__FILE__,__LINE__)
+
 namespace cs6390
 {
 
@@ -41,9 +44,11 @@ public:
 
     struct NotConnectedException : public easyException {
         NotConnectedException() : easyException("Not Connected") {}
+        NotConnectedException(const char * f, uint32_t l) : easyException("Not Connected", f, l) {}
     } ;
     struct SocketException : public easyException {
         SocketException(std::string s) : easyException(s) {}
+        SocketException(std::string msg, const char * f, uint32_t l) : easyException(msg, f, l) {}
     } ;
 
     void sendToSocket(std::string str)
