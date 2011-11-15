@@ -93,11 +93,11 @@ void sendBGP(auto_ptr<BGP> b)
 
 }
 
-void recvLSA(Message *in)
+void recvLSA(Message *in, Socket *s)
 {
     auto_ptr<LSA> r(dynamic_cast<LSA *> (in));
     cout << r.get();
-    uint32_t id = r->getRouterID();
+    uint32_t id = r->routerID;
     for(LinkMap::iterator it = r->getLinkMap()->begin();
         it != r->getLinkMap()->end(); ++it)
     {
@@ -141,7 +141,7 @@ void recvLSA(Message *in)
 
 }
 
-void recvBGP(Message *in)
+void recvBGP(Message *in, Socket *s)
 {
     auto_ptr<BGP> b(dynamic_cast<BGP *> (in));
 
@@ -175,22 +175,29 @@ void recvBGP(Message *in)
 
 }
 
-void recvRREQ(Message *in)
+void recvRREQ(Message *in, Socket *s)
 {
     auto_ptr<RREQ> r(dynamic_cast<RREQ *> (in));
+    cout << r.get();
+
+    RRES res;
+    res.routers.push_back(0);
+    res.routers.push_back(1);
+    res.routers.push_back(2);
+    s->sendMessage(res);
 }
 
-void recvRRES(Message *in)
+void recvRRES(Message *in, Socket *s)
 {
     auto_ptr<RRES> r(dynamic_cast<RRES *> (in));
 }
 
-void recvIRRQ(Message *in)
+void recvIRRQ(Message *in, Socket *s)
 {
     auto_ptr<IRRQ> r(dynamic_cast<IRRQ *> (in));
 }
 
-void recvIRRS(Message *in)
+void recvIRRS(Message *in, Socket *s)
 {
     auto_ptr<IRRS> r(dynamic_cast<IRRS *> (in));
 }
@@ -214,27 +221,27 @@ void * recvThread(void *params)
 
         if(type == "LSA")
         {
-            recvLSA(in);
+            recvLSA(in, s);
         }
         else if(type == "BGP")
         {
-            recvBGP(in);
+            recvBGP(in, s);
         }
         else if(type == "RREQ")
         {
-            recvRREQ(in);
+            recvRREQ(in, s);
         }
         else if(type == "RRES")
         {
-            recvRRES(in);
+            recvRRES(in, s);
         }
         else if(type == "IRRQ")
         {
-            recvIRRQ(in);
+            recvIRRQ(in, s);
         }
         else if(type == "IRRS")
         {
-            recvIRRS(in);
+            recvIRRS(in, s);
         }
         else
         {

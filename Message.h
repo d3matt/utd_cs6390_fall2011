@@ -49,15 +49,15 @@ typedef         std::map<uint32_t, uint32_t> LinkMap;
 class LSA : public Message
 {
 private:
+    //used a map to make lookups fast
+    LinkMap         linkStates;
+public:
     uint32_t        AS;
     uint32_t        routerID;
     uint32_t        neighborAS;
     uint32_t        neighborRouterID;
 
-    //used a map to make lookups fast
-    LinkMap         linkStates;
 
-public:
     friend ostream& operator<< (ostream& out, const LSA& c);
                     LSA();
                     LSA(int argc, char ** argv);
@@ -66,10 +66,6 @@ public:
     int             setLinkMetric(uint32_t net, uint32_t metric);
     int             setLinkMetric(uint32_t metric);
 
-    uint32_t        getRouterID() const {return routerID;}
-    uint32_t        getAS() const {return AS;}
-    uint32_t        getNeighborAS() const {return neighborAS;}
-    uint32_t        getNeighborRouterID() const {return neighborRouterID;}
     LinkMap        *getLinkMap() {return &linkStates;}
 
     //for send/recv

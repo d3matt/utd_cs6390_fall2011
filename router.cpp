@@ -103,9 +103,21 @@ int main(int argc, char ** argv)
                 cout << "argument to RT must be in range [0:99]" << endl;
                 continue;
             }
+            Socket s(&myAS.saddr);
+            RREQ mOUT;
+            mOUT.source=localStatus.routerID;
+            mOUT.dest=arg;
+            s.sendMessage(mOUT);
             
-            cout<< "Calculating route to " << arg
-                << " (Not implemented yet)" << endl;
+            cout<< "Calculating route to " << arg << endl;
+            Message* min=s.getMessage();
+            if(min != NULL) {
+                cout << "Result: " << min << endl;
+                delete min;
+            }
+            else {
+                cerr << "Failed!" << endl;
+            }
         }
         else if(v[0] == "DN") {
             try {
