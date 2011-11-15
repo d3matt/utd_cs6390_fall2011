@@ -82,6 +82,27 @@ EdgeMap edges;
  */
 NodeMap nodes, remoteNodes;
 
+class MessageResponder
+{
+private:
+    Message *in;
+    Socket *s;
+
+    void recvLSA();
+    void recvBGP();
+    void recvRREQ();
+    void recvRRES();
+    void recvIRRQ();
+    void recvIRRS();
+
+public:
+    MessageResponder(Message *newIn, Socket *newS) : in(newIn), s(newS) {}
+    ~MessageResponder() {}
+
+    void recv();
+
+};
+
 void pdie(const char * msg, int rc=1)
 {
     perror(msg);
@@ -93,7 +114,7 @@ void sendBGP(auto_ptr<BGP> b)
 
 }
 
-void recvLSA(Message *in, Socket *s)
+void MessageResponder::recvLSA()
 {
     auto_ptr<LSA> r(dynamic_cast<LSA *> (in));
     cout << r.get();
@@ -141,7 +162,7 @@ void recvLSA(Message *in, Socket *s)
 
 }
 
-void recvBGP(Message *in, Socket *s)
+void MessageResponder::recvBGP()
 {
     auto_ptr<BGP> b(dynamic_cast<BGP *> (in));
 
@@ -175,7 +196,7 @@ void recvBGP(Message *in, Socket *s)
 
 }
 
-void recvRREQ(Message *in, Socket *s)
+void MessageResponder::recvRREQ()
 {
     auto_ptr<RREQ> r(dynamic_cast<RREQ *> (in));
     cout << r.get();
@@ -187,19 +208,55 @@ void recvRREQ(Message *in, Socket *s)
     s->sendMessage(res);
 }
 
-void recvRRES(Message *in, Socket *s)
+void MessageResponder::recvRRES()
 {
     auto_ptr<RRES> r(dynamic_cast<RRES *> (in));
 }
 
-void recvIRRQ(Message *in, Socket *s)
+void MessageResponder::recvIRRQ()
 {
     auto_ptr<IRRQ> r(dynamic_cast<IRRQ *> (in));
 }
 
-void recvIRRS(Message *in, Socket *s)
+void MessageResponder::recvIRRS()
 {
     auto_ptr<IRRS> r(dynamic_cast<IRRS *> (in));
+}
+
+void MessageResponder::recv()
+{
+    string type = in->getType();
+
+    if(type == "LSA")
+    {
+        recvLSA();
+    }
+    else if(type == "BGP")
+    {
+        recvBGP();
+    }
+    else if(type == "RREQ")
+    {
+        recvRREQ();
+    }
+    else if(type == "RRES")
+    {
+        recvRRES();
+    }
+    else if(type == "IRRQ")
+    {
+        recvIRRQ();
+    }
+    else if(type == "IRRS")
+    {
+        recvIRRS();
+    }
+    else
+    {
+        cerr << "Invalid Message Type" << endl;
+    }
+
+    return;
 }
 
 void * recvThread(void *params)
@@ -217,37 +274,8 @@ void * recvThread(void *params)
             continue;
         }
 
-        string type = in->getType();
-
-        if(type == "LSA")
-        {
-            recvLSA(in, s);
-        }
-        else if(type == "BGP")
-        {
-            recvBGP(in, s);
-        }
-        else if(type == "RREQ")
-        {
-            recvRREQ(in, s);
-        }
-        else if(type == "RRES")
-        {
-            recvRRES(in, s);
-        }
-        else if(type == "IRRQ")
-        {
-            recvIRRQ(in, s);
-        }
-        else if(type == "IRRS")
-        {
-            recvIRRS(in, s);
-        }
-        else
-        {
-            cerr << "Invalid Message Type" << endl;
-            break;
-        }
+        MessageResponder responder(in, s);
+        responder.recv();
 
         *update = true;
 
