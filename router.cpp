@@ -83,8 +83,10 @@ int main(int argc, char ** argv)
         uint32_t arg = 0;
         ui_help();
         cout << "> ";
-       
+
         getline(cin, line);
+        if(cin.eof()) break;    //die on CTRL-D
+
         vector<string> v;
         boost::split(v, line, boost::is_any_of(" \t"), boost::algorithm::token_compress_on );
 
