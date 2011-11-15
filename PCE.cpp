@@ -42,8 +42,10 @@ struct EdgeLess
 
 inline uint32_t max(uint32_t left, uint32_t right) {if(left >= right) return left; else return right;}
 
-typedef pair<Edge, uint32_t> EdgeMapEntry;
-typedef map<Edge, uint32_t, EdgeLess> EdgeMap;
+//Value is routerID, metric
+typedef pair<uint32_t, uint32_t> EdgeMapValue;
+typedef pair<Edge, EdgeMapValue> EdgeMapEntry;
+typedef map<Edge, EdgeMapValue, EdgeLess> EdgeMap;
 
 typedef pair<unsigned, unsigned> NodeMapEntry;
 typedef map<unsigned, unsigned> NodeMap;
@@ -100,6 +102,8 @@ void * recvThread(void *params)
         
         cout << "received router status: " << endl;
         cout << r.get();
+
+        uint32_t id = r->getRouterID();
         
         for(LinkMap::iterator it = r->getLinkMap()->begin();
             it != r->getLinkMap()->end(); ++it)
@@ -124,13 +128,18 @@ void * recvThread(void *params)
                     if(iter2 == iter1) continue;
     
                     Edge newEdge(iter1->first, iter2->first);
-                    uint32_t metric = max(iter1->second, iter1->second);
-    
+                    if(iter1->second == 99 || iter2->second == 99)
                     {
-                        pair<EdgeMap::iterator, bool> test = edges.insert(EdgeMapEntry(newEdge, metric));
+                        edges.erase(newEdge);
+                    }
+                    else
+                    {
+                        uint32_t metric = max(iter1->second, iter2->second);
+    
+                        pair<EdgeMap::iterator, bool> test = edges.insert(EdgeMapEntry(newEdge, EdgeMapValue(id, metric)));
                         if(test.second == false)
                         {
-                            test.first->second = metric;
+                            test.first->second.second = metric;
                         }
                     }
                 }
@@ -140,7 +149,6 @@ void * recvThread(void *params)
 
     }
 
-    cerr << "thread exit" << endl;
     return NULL;
 }
 
@@ -152,7 +160,7 @@ void *workerThread(void *param)
     unsigned numEdges = 0;
     unsigned numNodes = 0;
 
-    graph_t g;
+    graph_t localGraph;
 
     vector<vertex_descriptor> p;
     vector<int> d;
@@ -172,23 +180,23 @@ void *workerThread(void *param)
 
                 if(numNodes && numEdges)
                 {
-                    g = graph_t(numNodes);
+                    localGraph = graph_t(numNodes);
                     
                         for(EdgeMap::iterator it = edges.begin(); it != edges.end(); ++it)
                         {
-                            cout << it->first.first << " -- " << it->first.second << endl;
-                            boost::add_edge(it->first.first, it->first.second, EdgeWeight(it->second), g);
+                            boost::add_edge(it->first.first, it->first.second, EdgeWeight(it->second.second), localGraph);
                         }
     
-                    p = vector<vertex_descriptor>(boost::num_vertices(g));
-                    d = vector<int>(boost::num_vertices(g));
+                    p = vector<vertex_descriptor>(boost::num_vertices(localGraph));
+                    d = vector<int>(boost::num_vertices(localGraph));
     
-                    vertex_descriptor s = boost::vertex(nodes.begin()->first, g);
+                    vertex_descriptor s = boost::vertex(nodes.begin()->first, localGraph);
     
-                    boost::dijkstra_shortest_paths(g, s, boost::predecessor_map(&p[0]).distance_map(&d[0]));
+                    boost::dijkstra_shortest_paths(localGraph, s, boost::predecessor_map(&p[0]).distance_map(&d[0]));
     
-                    boost::tie(vt, vtend) = boost::vertices(g);
+                    boost::tie(vt, vtend) = boost::vertices(localGraph);
                 }
+                *update = false;
             }
             
             if(numNodes && numEdges)

@@ -24,6 +24,7 @@ void ui_help(string message="")
 {
     if(message != "")
         cerr << message << endl << endl;
+
     cout<< "Enter one of the following commands: " << endl
         << " RT <net>" << endl
         << " UP <net>" << endl
@@ -77,15 +78,17 @@ int main(int argc, char ** argv)
     }
 
     cout << endl << endl;
-    ui_help();
     while (!stopping) {
-        string line;
-        uint32_t arg;
+        string line = "";
+        uint32_t arg = 0;
+        ui_help();
         cout << "> ";
        
         getline(cin, line);
         vector<string> v;
         boost::split(v, line, boost::is_any_of(" \t"), boost::algorithm::token_compress_on );
+
+        boost::to_upper(v[0]);
     
         //ignore extra args...
         if(v[0] == "RT") {
@@ -93,52 +96,71 @@ int main(int argc, char ** argv)
                 arg = boost::lexical_cast<uint32_t>(v[1]);
             }
             catch ( ... ) {
-                ui_help("argument to RT must be integer");
+                cout << "argument to RT must be integer" << endl;
                 continue;
             }
             if (arg > 99) {
-                ui_help("argument to RT must be in range [0:99]");
+                cout << "argument to RT must be in range [0:99]" << endl;
                 continue;
             }
             
             cout<< "Calculating route to " << arg
                 << " (Not implemented yet)" << endl;
         }
-        else if(v[0] == "DN" || v[0] == "UP") {
+        else if(v[0] == "DN") {
             try {
                 arg = boost::lexical_cast<uint32_t>(v[1]);
             }
             catch ( ... ) {
-                ui_help("argument to DN must be integer");
+                cout << "argument to DN must be integer" << endl;
                 continue;
             }
             int rc;
-            if (v[0] == "DN") {
-                cout << "Bring down interface " << arg << "..." << flush;
-                rc = localStatus.setLinkMetric(arg, 99);
-            }
-            else {
-                cout << "Bring up interface " << arg << "..." << flush;
-                rc = localStatus.setLinkMetric(arg, 1);
-            }
+            cout << "Bring down interface " << arg << "..." << flush;
+
+            rc = localStatus.setLinkMetric(arg, 99);
             if(rc == 0) {
                 Socket s(&myAS.saddr);
                 s.sendMessage(localStatus);
                 cout << "done" << endl;
             }
             else {
-                ui_help( string("Selected network ") + v[1] + " is not a valid local network");
+                cout << "Selected network " << v[1] << " is not a valid local network" << endl;
+                continue;
+            }
+        }
+        else if(v[0] == "UP") {
+            try {
+                arg = boost::lexical_cast<uint32_t>(v[1]);
+            }
+            catch ( ... ) {
+                cout << "argument to DN must be integer" << endl;
+                continue;
+            }
+            int rc;
+            cout << "Bring up interface " << arg << "..." << flush << endl;
+            rc = localStatus.setLinkMetric(arg, 1);
+            if(rc == 0) {
+                Socket s(&myAS.saddr);
+                s.sendMessage(localStatus);
+                cout << "done" << endl;
+            }
+            else {
+                cout << "Selected network " << v[1] << " is not a valid local network" << endl;
                 continue;
             }
         }
         else if(v[0] == "LI") {
             cout << &localStatus;
         }
+        else if(v[0] == "EXIT") {
+            break;
+        }
         else if(v[0] == "") {
             continue;
         }
         else{
-            ui_help( string("Unknown command: ") + v[0]);
+            cout << "Unknown command: " << v[0] << endl;
         }
     }
 

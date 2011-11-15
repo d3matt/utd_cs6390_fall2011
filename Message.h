@@ -64,6 +64,7 @@ public:
     int             setLinkMetric(uint32_t net, uint32_t metric);
     int             setLinkMetric(uint32_t metric);
 
+    uint32_t        getRouterID() const {return routerID;}
     uint32_t        getAS() const {return AS;}
     LinkMap        *getLinkMap() {return &linkStates;}
 

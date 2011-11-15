@@ -141,7 +141,6 @@ int Socket::input()
         connected=false;
         close(sockFD);
         sockFD=-1;
-        cerr << __FILE__"," << __LINE__ << endl;
         THROW_NC;
     }
     
