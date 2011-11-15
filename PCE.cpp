@@ -391,11 +391,7 @@ int main(int argc, char ** argv)
         for(vector<RecvThreadId*>::iterator it = threadIds.begin();
             it != threadIds.end(); ++it)
         {
-#ifndef __CYGWIN__
             int ret = pthread_tryjoin_np((*it)->first, NULL);
-#else 
-            int ret = pthread_join((*it)->first, NULL);
-#endif
             if(ret == 0)
             {
                 delete (*it)->second.s;
@@ -409,11 +405,7 @@ int main(int argc, char ** argv)
         }
     }
 
-#ifndef __CYGWIN__
     pthread_tryjoin_np(workerId, NULL);
-#else
-    pthread_join(workerId, NULL);
-#endif
 
 /*
     for(vector<recvThreadParams_t*>::iterator it = threadParams.begin();
