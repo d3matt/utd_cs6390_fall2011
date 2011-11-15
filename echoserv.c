@@ -34,32 +34,40 @@ int main(int argc, char *argv[]) {
     struct    sockaddr_in servaddr;  /*  socket address structure  */
     char      buffer[MAX_LINE];      /*  character buffer          */
     char     *endptr;                /*  for strtol()              */
+    int       reuse=1;               /*  for setsockopt            */
 
 
     /*  Get port number from the command line, and
         set to default port if no arguments were supplied  */
 
     if ( argc == 2 ) {
-	port = strtol(argv[1], &endptr, 0);
-	if ( *endptr ) {
-	    fprintf(stderr, "ECHOSERV: Invalid port number.\n");
-	    exit(EXIT_FAILURE);
-	}
+        port = strtol(argv[1], &endptr, 0);
+        if ( *endptr ) {
+            fprintf(stderr, "ECHOSERV: Invalid port number.\n");
+            exit(EXIT_FAILURE);
+        }
     }
     else if ( argc < 2 ) {
-	port = ECHO_PORT;
+        port = ECHO_PORT;
     }
     else {
-	fprintf(stderr, "ECHOSERV: Invalid arguments.\n");
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "ECHOSERV: Invalid arguments.\n");
+        exit(EXIT_FAILURE);
     }
 
-	
+
     /*  Create the listening socket  */
 
     if ( (list_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
-	fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* set SO_REUSEADDR so echoserv will be able to be re-run instantly on shutdown */
+    if(setsockopt(list_s, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
+        fprintf(stderr, "ECHOSERV: Error setting SO_REUSEADDR");
+        close(list_s);
+        exit(EXIT_FAILURE);
     }
 
 
@@ -73,16 +81,16 @@ int main(int argc, char *argv[]) {
 
 
     /*  Bind our socket addresss to the 
-	listening socket, and call listen()  */
+        listening socket, and call listen()  */
 
     if ( bind(list_s, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0 ) {
-	fprintf(stderr, "ECHOSERV: Error calling bind()\n");
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "ECHOSERV: Error calling bind()\n");
+        exit(EXIT_FAILURE);
     }
 
     if ( listen(list_s, 2) < 0 ) {
-	fprintf(stderr, "ECHOSERV: Error calling listen()\n");
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "ECHOSERV: Error calling listen()\n");
+        exit(EXIT_FAILURE);
     }
 
     
@@ -92,27 +100,27 @@ int main(int argc, char *argv[]) {
     while ( 1 ) {
         int bytes;
 
-	/*  Wait for a connection, then accept() it  */
+        /*  Wait for a connection, then accept() it  */
 
-	if ( (conn_s = accept(list_s, NULL, NULL) ) < 0 ) {
-	    fprintf(stderr, "ECHOSERV: Error calling accept()\n");
-	    exit(EXIT_FAILURE);
-	}
+        if ( (conn_s = accept(list_s, NULL, NULL) ) < 0 ) {
+            fprintf(stderr, "ECHOSERV: Error calling accept()\n");
+            exit(EXIT_FAILURE);
+        }
 
 
-	/*  Retrieve an input line from the connected socket
-	    then simply write it back to the same socket.     */
+        /*  Retrieve an input line from the connected socket
+            then simply write it back to the same socket.     */
 
         bytes = recv(conn_s, buffer, MAX_LINE-1, 0);
         printf("Received: '%s'\n", buffer);
         send(conn_s, buffer, bytes, 0);
 
 
-	/*  Close the connected socket  */
+        /*  Close the connected socket  */
 
-	if ( close(conn_s) < 0 ) {
-	    fprintf(stderr, "ECHOSERV: Error calling close()\n");
-	    exit(EXIT_FAILURE);
-	}
+        if ( close(conn_s) < 0 ) {
+            fprintf(stderr, "ECHOSERV: Error calling close()\n");
+            exit(EXIT_FAILURE);
+        }
     }
 }

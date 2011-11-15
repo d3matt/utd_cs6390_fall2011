@@ -2,6 +2,8 @@ CC=gcc
 CXX=g++
 LD=$(CXX)
 CFLAGS=-Wall -g -fexceptions -O2 -fno-guess-branch-probability
+#uncomment to enable debug messages
+#CFLAGS+=-DPROJ_DEBUG
 LDFLAGS=-lpthread
 
 ifeq ($(HIDE),)
@@ -25,7 +27,7 @@ endif
 
 BINLIST=echoserv Message_test router PCE
 
-COMMON_OBJECTS=utils.o AS.o PCEconfig.o RouterStatus.o Socket.o usage.o
+COMMON_OBJECTS=utils.o PCEconfig.o Socket.o usage.o Message.o
 
 default: $(BINLIST)
 
@@ -48,7 +50,7 @@ echoserv: echoserv.o
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
-Message_test: RREQ.o RREP.o Message_test.o $(COMMON_OBJECTS)
+Message_test: Message_test.o $(COMMON_OBJECTS)
 	@ echo LD $@
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
 
@@ -72,6 +74,11 @@ dist:
 	mkdir -p project
 	cp *.cpp *.h README Makefile project
 	zip project.zip project/*
+
+message_unit_test: echoserv Message_test
+	python message_test.py
+
+tests: message_unit_test
 
 
 -include .depend/*.d

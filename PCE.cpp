@@ -23,6 +23,7 @@ extern "C"
 #include "utils.h"
 
 using namespace std;
+using namespace cs6390;
 
 typedef pair<uint32_t, uint32_t> Edge;
 
@@ -42,7 +43,7 @@ struct EdgeLess
 inline uint32_t max(uint32_t left, uint32_t right) {if(left >= right) return left; else return right;}
 
 typedef pair<Edge, uint32_t> EdgeMapEntry;
-typedef set<Edge, uint32_t/*, EdgeLess*/> EdgeMap;
+typedef map<Edge, uint32_t, EdgeLess> EdgeMap;
 
 typedef pair<unsigned, unsigned> NodeMapEntry;
 typedef map<unsigned, unsigned> NodeMap;
@@ -95,12 +96,13 @@ void * recvThread(void *params)
         catch (Socket::NotConnectedException e) {
             continue;
         }
-        auto_ptr<RouterStatus> r(dynamic_cast<RouterStatus *> (in));
+        auto_ptr<LSA> r(dynamic_cast<LSA *> (in));
         
         cout << "received router status: " << endl;
-        cout << *r;
+        cout << r.get();
         
-
+        for(LinkMap::iterator it = r->getLinkMap()->begin();
+            it != r->getLinkMap()->end(); ++it)
         {
             MutexLocker lock(graphMutex);
             for(LinkMap::iterator it = r->getLinkMap()->begin();
@@ -135,6 +137,7 @@ void * recvThread(void *params)
             }
             *update = true;
         }
+
     }
 
     cerr << "thread exit" << endl;
@@ -284,5 +287,7 @@ int main(int argc, char ** argv)
         delete *it;
     }
 */
+
+    return 0;
 
 }

@@ -8,6 +8,16 @@
 #include "Exceptions.h"
 #include "Message.h"
 
+#ifdef PROJ_DEBUG
+#define SOCKET_DEBUG
+#endif
+
+#define THROW_NC throw NotConnectedException(__FILE__,__LINE__)
+#define THROW_SE(msg) throw SocketException(msg,__FILE__,__LINE__)
+
+namespace cs6390
+{
+
 class Socket
 {
 protected:
@@ -34,36 +44,17 @@ public:
 
     struct NotConnectedException : public easyException {
         NotConnectedException() : easyException("Not Connected") {}
+        NotConnectedException(const char * f, uint32_t l) : easyException("Not Connected", f, l) {}
     } ;
     struct SocketException : public easyException {
         SocketException(std::string s) : easyException(s) {}
+        SocketException(std::string msg, const char * f, uint32_t l) : easyException(msg, f, l) {}
     } ;
 
     void sendToSocket(std::string str)
     {
         myBuf.str(str);
         output();
-    }
-
-    template <typename T>
-    void sendToSocket(T *t)
-    {
-        myBuf.str(t->toString());
-        output();
-    }
-
-    template <typename T>
-    Socket & operator<< (T *t)
-    {
-        myBuf << t->toString();
-        output();
-        return (*this);
-    }
-
-    std::string receiveFromSocket()
-    {
-        input();
-        return myBuf.str();
     }
 
     int                 sendMessage(Message &m);
@@ -86,6 +77,8 @@ public:
     ListenSocket(uint16_t port);
     Socket acceptConnection();
 };
+
+} //cs6390
 
 #endif /* __SOCKET_H__ */
 

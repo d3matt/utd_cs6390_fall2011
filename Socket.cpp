@@ -9,6 +9,8 @@
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::string;
+using std::vector;
 
 extern "C"
 {
@@ -23,13 +25,17 @@ extern "C"
 }
 
 #include "Socket.h"
+
+namespace cs6390
+{
+
 Socket::Socket(const Socket &copy)
 {
     this->connected=copy.connected;
     this->sockFD=copy.sockFD;
 }
 
-Socket::Socket(std::string host, uint16_t port) :
+Socket::Socket(string host, uint16_t port) :
     connected(false), sockFD(-1)
 {
     if(host != "")
@@ -39,7 +45,7 @@ Socket::Socket(std::string host, uint16_t port) :
         struct sockaddr_in  saddr_in;
         struct sockaddr     saddr; };
         if( (h_server = gethostbyname(host.c_str())) == NULL) {
-            throw( SocketException("Failed to find host") );
+            THROW_SE("Failed to find host");
         }
 
         saddr_in.sin_family = AF_INET;
@@ -64,22 +70,22 @@ Socket::~Socket()
 void Socket::createFD(void)
 {
     if(sockFD != -1)
-        throw SocketException("socket already created");
+        THROW_SE("socket already created");
     if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        throw( SocketException("Failed to create a socket") );
+        THROW_SE("Failed to create a socket");
     }
 }
 
 void Socket::connectFD(struct sockaddr * saddr)
 {
     if(connected)
-        throw SocketException("already connected");
+        THROW_SE("already connected");
     if(sockFD == -1) {
         createFD();
     }
 
     if( connect( sockFD, saddr, sizeof(sockaddr)) < 0) {
-        throw( SocketException("Failed to connect to socket") );
+        THROW_SE("Failed to connect to socket");
     }
 
     connected = true;
@@ -87,22 +93,12 @@ void Socket::connectFD(struct sockaddr * saddr)
 
 int Socket::output()
 {
-    int length;
-    char buffer[1024];
-
-    length = myBuf.str().length();
-    
-    /* I don't know why, but with large buffers, this works */
-    // does directly using the stringstream's backing store not work?
-    std::string tmpStr = myBuf.str();
-    const char *str = tmpStr.c_str();
-    memcpy(buffer, str, length);
-    buffer[length]=0;
-    length++;
-
-    cerr << "Sending: '" << buffer << "'" << endl;
-
-    int retVal = send(sockFD, buffer, length, 0);
+    //don't forget to add 1 for \0
+    int length = myBuf.str().length()+1;
+#ifdef SOCKET_DEBUG
+    cerr << "Sending: '" << myBuf.str() << "'" << endl;
+#endif
+    int retVal = send(sockFD, myBuf.str().c_str(), length , 0);
 
     if(retVal == length) {
         myBuf.ignore();
@@ -112,10 +108,10 @@ int Socket::output()
         std::stringstream ss;
         ss << "error sending: " << errno;
         perror("send()");
-        throw SocketException(ss.str());
+        THROW_SE(ss.str());
     }
     else {
-        std::cerr << "small send" << std::endl;
+        cerr << "Odd send...  expected: " << length  << " sent: " << retVal << endl;
     }
 
     return retVal;
@@ -127,7 +123,8 @@ int Socket::input()
 
     if (!connected)
     {
-        throw(NotConnectedException() );
+        cerr << __FILE__"," << __LINE__ << endl;
+        THROW_NC;
     }
 
     int retVal = recv(sockFD, buffer, 4096, 0);
@@ -138,13 +135,14 @@ int Socket::input()
     else if(retVal < 0)
     {
         strerror_r(errno, buffer, 4096);
-        throw SocketException( string("Error in recv()") + buffer);
+        THROW_SE( string("Error in recv()") + buffer );
     }
     if (retVal == 0) {
         connected=false;
         close(sockFD);
         sockFD=-1;
-        throw NotConnectedException();
+        cerr << __FILE__"," << __LINE__ << endl;
+        THROW_NC;
     }
     
     return retVal;
@@ -164,11 +162,23 @@ Message * Socket::getMessage()
     if(input() <= 0)
         return NULL;
 
-    std::vector<std::string> v;
-    std::string save(myBuf.str());
+    vector<string> v;
+    string save(myBuf.str());
     boost::split(v, save, boost::is_any_of(" \t\r\n"), boost::algorithm::token_compress_on );
     if(v[0] == "LSA")
-        m = new RouterStatus(v);
+        m = new LSA(v);
+    else if(v[0] == "RREQ")
+        m = new RREQ(v);
+    else if(v[0] == "BGP" )
+        m = new BGP(v);
+    else if(v[0] == "RRES" )
+        m = new RRES(v);
+    else if(v[0] == "IRRQ" )
+        m = new IRRQ(v);
+    else if(v[0] == "IRRS" )
+        m = new IRRS(v);
+    else
+        cerr << "Unknown message type: " << v[0] << endl;
 
     return m;
 }
@@ -181,14 +191,14 @@ ListenSocket::ListenSocket(uint16_t port)
     servaddr.sin_addr.s_addr    = htonl(INADDR_ANY);
 
     if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        throw( SocketException("Failed to create a socket") );
+        THROW_SE("Failed to create a socket");
     }
     if( bind( sockFD, (const sockaddr *)&servaddr, sizeof(servaddr) ) ) {
-        throw( SocketException("Failed to bind socket") );
+        THROW_SE("Failed to bind socket");
     }
     if( listen(sockFD, 5) < 0 )
     {
-        throw( SocketException("Failed to listen on socket") );
+        THROW_SE("Failed to listen on socket");
     }
 }
 
@@ -210,3 +220,5 @@ Socket ListenSocket::acceptConnection()
     Socket s(newFD);
     return s;
 }
+
+} //cs6390

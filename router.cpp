@@ -18,6 +18,7 @@
 #include "utils.h"
 
 using namespace std;
+using namespace cs6390;
 
 void ui_help(string message="")
 {
@@ -46,13 +47,13 @@ int main(int argc, char ** argv)
     else if(argc < 7)
         router_usage("invalid number of arguments");
 
-    RouterStatus localStatus(argc, argv);
+    LSA localStatus(argc, argv);
     PCEconfig pConfig(argv[3]);
 
     cout << pConfig;
     cout << "localStatus (before serialization): " << endl;
 
-    cout << localStatus;
+    cout << &localStatus;
 
     AS myAS=pConfig.getAS(localStatus);
 
@@ -131,7 +132,7 @@ int main(int argc, char ** argv)
             }
         }
         else if(v[0] == "LI") {
-            cout << localStatus;
+            cout << &localStatus;
         }
         else if(v[0] == "") {
             continue;
