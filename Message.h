@@ -36,6 +36,8 @@ public:
 
     virtual string serialize(bool readable=false) const = 0;
 
+    string getType() const {return type;}
+
     static int test_catch(short port);
     static int test(Socket &sock);
 };
@@ -50,7 +52,7 @@ private:
     uint32_t        AS;
     uint32_t        routerID;
     uint32_t        neighborAS;
-    uint32_t        neighborrouterID;
+    uint32_t        neighborRouterID;
 
     //used a map to make lookups fast
     LinkMap         linkStates;
@@ -66,6 +68,8 @@ public:
 
     uint32_t        getRouterID() const {return routerID;}
     uint32_t        getAS() const {return AS;}
+    uint32_t        getNeighborAS() const {return neighborAS;}
+    uint32_t        getNeighborRouterID() const {return neighborRouterID;}
     LinkMap        *getLinkMap() {return &linkStates;}
 
     //for send/recv

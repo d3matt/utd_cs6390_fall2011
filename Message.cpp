@@ -49,7 +49,7 @@ ostream& operator<< (ostream& out, const Message *m)
 }
 
 LSA::LSA()
-    : Message("LSA"), AS(99), routerID(99), neighborAS(99), neighborrouterID(99) { }
+    : Message("LSA"), AS(99), routerID(99), neighborAS(99), neighborRouterID(99) { }
 
 //LSA contructor, only to be used by the main() for router.cpp
 //most of the command line parsing for router.cpp happens in this function
@@ -70,7 +70,7 @@ LSA::LSA(int argc, char ** argv)
     if(string_to_int(argv[4], neighborAS) == NULL)
         router_usage("Fourth argument must be an integer");
 
-    if(string_to_int(argv[5], neighborrouterID) == NULL)
+    if(string_to_int(argv[5], neighborRouterID) == NULL)
         router_usage("Fifth argument must be an integer");
 
     for(int32_t i=6; i < argc; i ++)
@@ -123,7 +123,7 @@ LSA::LSA(vector<string> &v)
         throw DeserializationException("wrong message type");
     routerID = boost::lexical_cast<uint32_t>(v[1]);
     neighborAS = boost::lexical_cast<uint32_t>(v[2]);
-    neighborrouterID = boost::lexical_cast<uint32_t>(v[3]);
+    neighborRouterID = boost::lexical_cast<uint32_t>(v[3]);
 
     for(uint32_t i=4; i < v.size(); i+=2)
     {
@@ -140,8 +140,8 @@ string LSA::serialize(bool readable) const
     ss  << routerID << " ";
     if(readable) ss << endl << " neighborAS: ";
     ss  << neighborAS << " ";
-    if(readable) ss << endl << " neighborrouterID: ";
-    ss  << neighborrouterID;
+    if(readable) ss << endl << " neighborRouterID: ";
+    ss  << neighborRouterID;
     if(readable) ss << endl << " linkStates: " << endl;
     for(LinkMap::const_iterator it = linkStates.begin(); it != linkStates.end(); it++) {
         if(readable) ss << "net: ";
