@@ -7,6 +7,11 @@
 #include <vector>
 #include <map>
 
+extern "C"
+{
+# include <stdint.h>
+}
+
 using std::string;
 using std::ostream;
 using std::istream;
