@@ -47,9 +47,6 @@ typedef pair<uint32_t, uint32_t> EdgeMapValue;
 typedef pair<Edge, EdgeMapValue> EdgeMapEntry;
 typedef map<Edge, EdgeMapValue, EdgeLess> EdgeMap;
 
-typedef pair<unsigned, unsigned> NodeMapEntry;
-typedef map<unsigned, unsigned> NodeMap;
-
 typedef pair<uint32_t, vector<uint32_t> > LocalNodeMapEntry;
 typedef map<uint32_t, vector<uint32_t> > LocalNodeMap;
 
@@ -131,12 +128,12 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
 
     RRES resp;
 
-    boost::graph_traits < graph_t >::vertex_iterator vt, vtend;
     {
         MutexLocker graphLock(&graphMutex);
 
         numEdges = edges.size();
         numNodes = nodes.size();
+    startNode = nodes.find(startNode)->second[0];
 
         if(numNodes && numEdges)
         {
@@ -154,11 +151,8 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
     
             boost::dijkstra_shortest_paths(localGraph, s, boost::predecessor_map(&localP[0]).distance_map(&localD[0]));
     
-            boost::tie(vt, vtend) = boost::vertices(localGraph);
         }
     }
-
-    cout << startNode << " --> " << endNode << endl;
 
     while(endNode != startNode)
     {
@@ -166,11 +160,16 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
         {
             break;
         }
-        resp.routers.insert(resp.routers.begin(), localP[endNode]);
+        else if(localP[endNode] < endNode)
+        {
+            resp.routers.insert(resp.routers.begin(), edges.find(Edge(localP[endNode], endNode))->second.first);
+        }
+        else
+        {
+            resp.routers.insert(resp.routers.begin(), edges.find(Edge(endNode, localP[endNode]))->second.first);
+        }
         endNode = localP[endNode];
-        cout << endNode << endl;
     }
-    resp.routers.insert(resp.routers.begin(), startNode);
 
     return resp;
 }
@@ -180,22 +179,26 @@ void MessageResponder::recvLSA()
     auto_ptr<LSA> r(dynamic_cast<LSA *> (in));
     cout << r.get();
     uint32_t id = r->routerID;
+
+    MutexLocker lock(&graphMutex);
+
+    vector<uint32_t> nets;
     for(LinkMap::iterator it = r->getLinkMap()->begin();
         it != r->getLinkMap()->end(); ++it)
     {
-        MutexLocker lock(&graphMutex);
-        vector<uint32_t> nets;
-        for(LinkMap::iterator it = r->getLinkMap()->begin();
-            it != r->getLinkMap()->end(); ++it)
-        {
-            nets.push_back(it->first);
-            remoteNodes.insert(RemoteNodeMapEntry(it->first, RemoteNodeMapValue(ASno, 0)));
-        }
-            pair<LocalNodeMap::iterator, bool> test = nodes.insert(LocalNodeMapEntry(id, nets));
-            if(test.second == false)
-            {
-                test.first->second = nets;
-            }
+        nets.push_back(it->first);
+        remoteNodes.insert(RemoteNodeMapEntry(it->first, RemoteNodeMapValue(ASno, 0)));
+    }
+
+    pair<LocalNodeMap::iterator, bool> test = nodes.insert(LocalNodeMapEntry(id, nets));
+    if(test.second == false)
+    {
+        test.first->second = nets;
+    }
+
+    for(LinkMap::iterator it = r->getLinkMap()->begin();
+        it != r->getLinkMap()->end(); ++it)
+    {
 
         for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
             iter1 != r->getLinkMap()->end(); ++iter1)
