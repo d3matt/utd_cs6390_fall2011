@@ -126,14 +126,21 @@ void sendBGP(BGP &b, uint32_t from=0xffffffff)
     //we shouldn't send BGP messages to ASs that we don't know if they're neighbors or not
     //we'll have to talk about how to implement that
     map<uint32_t, vector<uint32_t> >::const_iterator it;
-    for(it = connected_AS.begin(); it != connected_AS.end(); it++)
+    for(it = connected_AS.begin(); it != connected_AS.end(); ++it)
     {
         if(it->first != from) {
             AS a=config->getAS(it->first);
-            Socket s( &a.saddr);
-            s.sendMessage(b);
+            try {
+                Socket s( &a.saddr);
+                s.sendMessage(b);
+            } 
+            catch(...) {
+                cerr << "Failed to connect to the remote PCE" << endl;
+            }
+
         }
     }
+            cout << "here" << endl;
 }
 //Done --matt
 
@@ -262,6 +269,8 @@ void MessageResponder::recvLSA()
         //just use stack var for this...
         BGP b;
         b.AS = ASno;
+        b.AS_hops = curHops;
+
 
         for(RemoteNodeMap::iterator it = remoteNodes.begin(); it != remoteNodes.end(); ++it)
         {
@@ -276,6 +285,7 @@ void MessageResponder::recvLSA()
         sendBGP(b);
         curHops++;
     }
+
 
 }
 
@@ -297,6 +307,11 @@ void MessageResponder::recvBGP()
                 changed=true;
             }
         }
+    }
+
+    for(RemoteNodeMap::iterator it = remoteNodes.begin(); it != remoteNodes.end(); ++it)
+    {
+        cout << it->first << " is " << it->second.second << " hops away" << endl;
     }
 
     if(changed) {

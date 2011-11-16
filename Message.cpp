@@ -198,7 +198,7 @@ int RREQ::test(short port)
 
 BGP::BGP(vector<string> &v)
 {
-    if(v.size() < 4)
+    if(v.size() < 3)
         throw DeserializationException("too few parameters");
     type    = v[0];
     AS      = boost::lexical_cast<uint32_t>(v[1]);

@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
     AS myAS=pConfig.getAS(localStatus);
 
 
-    Socket * s;
+    Socket * s = NULL;
     for (uint32_t i=0; i != 1 ;) {
         cout << "Sending initial status... " << flush;
         try
