@@ -50,6 +50,13 @@ typedef map<Edge, EdgeMapValue, EdgeLess> EdgeMap;
 typedef pair<unsigned, unsigned> NodeMapEntry;
 typedef map<unsigned, unsigned> NodeMap;
 
+typedef pair<uint32_t, vector<uint32_t> > LocalNodeMapEntry;
+typedef map<uint32_t, vector<uint32_t> > LocalNodeMap;
+
+typedef pair<uint32_t, uint32_t> RemoteNodeMapValue;
+typedef pair<uint32_t, RemoteNodeMapValue> RemoteNodeMapEntry;
+typedef map<uint32_t, RemoteNodeMapValue> RemoteNodeMap;
+
 typedef struct 
 {
     Socket *s;
@@ -75,18 +82,16 @@ pthread_mutex_t graphMutex;
 
 EdgeMap edges;
 
-/* For nodes:
- * second is the number of routers are connected to this net
- * For remoteNodes:
- * second is the current AS_hops to that net
- */
-NodeMap nodes, remoteNodes;
+LocalNodeMap nodes;
+RemoteNodeMap remoteNodes;
 
 class MessageResponder
 {
 private:
     Message *in;
     Socket *s;
+
+    RRES localDijkstra(uint32_t startNode, uint32_t endNode);
 
     void recvLSA();
     void recvBGP();
@@ -96,7 +101,8 @@ private:
     void recvIRRS();
 
 public:
-    MessageResponder(Message *newIn, Socket *newS) : in(newIn), s(newS) {}
+    MessageResponder(Message *newIn, Socket *newS) 
+        : in(newIn), s(newS) {}
     ~MessageResponder() {}
 
     void recv();
@@ -114,6 +120,61 @@ void sendBGP(auto_ptr<BGP> b)
 
 }
 
+RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
+{
+    unsigned numEdges = 0;
+    unsigned numNodes = 0;
+
+    graph_t localGraph;
+    vector<vertex_descriptor> localP;
+    vector<int> localD;
+
+    RRES resp;
+
+    boost::graph_traits < graph_t >::vertex_iterator vt, vtend;
+    {
+        MutexLocker graphLock(&graphMutex);
+
+        numEdges = edges.size();
+        numNodes = nodes.size();
+
+        if(numNodes && numEdges)
+        {
+            localGraph = graph_t(numNodes);
+            
+            for(EdgeMap::iterator it = edges.begin(); it != edges.end(); ++it)
+            {
+                boost::add_edge(it->first.first, it->first.second, EdgeWeight(it->second.second), localGraph);
+            }
+    
+            localP = vector<vertex_descriptor>(boost::num_vertices(localGraph));
+            localD = vector<int>(boost::num_vertices(localGraph));
+    
+            vertex_descriptor s = boost::vertex(startNode, localGraph);
+    
+            boost::dijkstra_shortest_paths(localGraph, s, boost::predecessor_map(&localP[0]).distance_map(&localD[0]));
+    
+            boost::tie(vt, vtend) = boost::vertices(localGraph);
+        }
+    }
+
+    cout << startNode << " --> " << endNode << endl;
+
+    while(endNode != startNode)
+    {
+        if(localP[endNode] == endNode)
+        {
+            break;
+        }
+        resp.routers.insert(resp.routers.begin(), localP[endNode]);
+        endNode = localP[endNode];
+        cout << endNode << endl;
+    }
+    resp.routers.insert(resp.routers.begin(), startNode);
+
+    return resp;
+}
+
 void MessageResponder::recvLSA()
 {
     auto_ptr<LSA> r(dynamic_cast<LSA *> (in));
@@ -123,15 +184,18 @@ void MessageResponder::recvLSA()
         it != r->getLinkMap()->end(); ++it)
     {
         MutexLocker lock(&graphMutex);
+        vector<uint32_t> nets;
         for(LinkMap::iterator it = r->getLinkMap()->begin();
             it != r->getLinkMap()->end(); ++it)
         {
-            pair<NodeMap::iterator, bool> test = nodes.insert(NodeMapEntry(it->first, 1));
+            nets.push_back(it->first);
+            remoteNodes.insert(RemoteNodeMapEntry(it->first, RemoteNodeMapValue(ASno, 0)));
+        }
+            pair<LocalNodeMap::iterator, bool> test = nodes.insert(LocalNodeMapEntry(id, nets));
             if(test.second == false)
             {
-                test.first->second++;
+                test.first->second = nets;
             }
-        }
 
         for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
             iter1 != r->getLinkMap()->end(); ++iter1)
@@ -166,28 +230,16 @@ void MessageResponder::recvBGP()
 {
     auto_ptr<BGP> b(dynamic_cast<BGP *> (in));
 
-    for(vector<uint32_t>::iterator it = b->nets.begin(); it != b->nets.end(); ++it)
-    {
-        if(nodes.find(*it) != nodes.end())
-        {
-            return;
-        }
-    }
-
     b->AS_hops++;
 
     for(vector<uint32_t>::iterator it = b->nets.begin(); it != b->nets.end(); ++it)
     {
-        NodeMap::iterator nodeIt = nodes.find(*it);
-        if(nodeIt == nodes.end())
+        std::pair<RemoteNodeMap::iterator, bool> test = remoteNodes.insert(RemoteNodeMapEntry(*it, RemoteNodeMapValue(b->AS, b->AS_hops)));
+        if(test.second == false)
         {
-            nodes.insert(NodeMapEntry(*it, b->AS_hops));
-        }
-        else
-        {
-            if(b->AS_hops < nodeIt->second)
+            if(b->AS_hops < test.first->second.second)
             {
-                nodeIt->second = b->AS_hops;
+                test.first->second = RemoteNodeMapValue(b->AS, b->AS_hops);
             }
         }
     }
@@ -201,10 +253,9 @@ void MessageResponder::recvRREQ()
     auto_ptr<RREQ> r(dynamic_cast<RREQ *> (in));
     cout << r.get();
 
-    RRES res;
-    res.routers.push_back(0);
-    res.routers.push_back(1);
-    res.routers.push_back(2);
+    RRES res = localDijkstra(r->source, r->dest);
+
+
     s->sendMessage(res);
 }
 
@@ -374,7 +425,7 @@ int main(int argc, char ** argv)
     pthread_t workerId;
     workerThreadParams_t workerParams;
     workerParams.update = &update;
-    pthread_create(&workerId, 0, workerThread, &workerParams);
+    //pthread_create(&workerId, 0, workerThread, &workerParams);
     
     vector<RecvThreadId*> threadIds;
     
