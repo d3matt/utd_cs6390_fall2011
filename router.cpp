@@ -58,12 +58,26 @@ int main(int argc, char ** argv)
 
     AS myAS=pConfig.getAS(localStatus);
 
-    {
+
+    Socket * s;
+    for (uint32_t i=0; i != 1 ;) {
         cout << "Sending initial status... " << flush;
-        Socket s(&myAS.saddr);
-        s.sendMessage(localStatus);
-        cout << "done" << endl;
+        try
+        {
+            s = new Socket(&myAS.saddr);
+        }
+        catch( Socket::SocketException &e)
+        {
+            cout << " (timeout)" << endl;
+            sleep(1);
+            continue;
+        }
+        i=1;
     }
+
+    s->sendMessage(localStatus);
+    cout << "done" << endl;
+    delete s;
 
     {
         struct sigaction action;
