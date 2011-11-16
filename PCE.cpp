@@ -483,8 +483,8 @@ int main(int argc, char ** argv)
     bool update = false;  
 
     pthread_t workerId;
-    workerThreadParams_t workerParams;
-    workerParams.update = &update;
+    //workerThreadParams_t workerParams;
+    //workerParams.update = &update;
     //pthread_create(&workerId, 0, workerThread, &workerParams);
     
     vector<RecvThreadId*> threadIds;
