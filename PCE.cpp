@@ -50,6 +50,7 @@ typedef map<Edge, EdgeMapValue, EdgeLess> EdgeMap;
 typedef pair<uint32_t, vector<uint32_t> > LocalNodeMapEntry;
 typedef map<uint32_t, vector<uint32_t> > LocalNodeMap;
 
+// value is ASno and hops
 typedef pair<uint32_t, uint32_t> RemoteNodeMapValue;
 typedef pair<uint32_t, RemoteNodeMapValue> RemoteNodeMapEntry;
 typedef map<uint32_t, RemoteNodeMapValue> RemoteNodeMap;
@@ -114,7 +115,10 @@ void pdie(const char * msg, int rc=1)
 
 void sendBGP(auto_ptr<BGP> b)
 {
-
+//implement sending the BGP message to all the PCEs
+//in class, someone brought up a good point (GASP!)
+//we shouldn't send BGP messages to ASs that we don't know if they're neighbors or not
+//we'll have to talk about how to implement that
 }
 
 RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
@@ -225,6 +229,25 @@ void MessageResponder::recvLSA()
                 }
             }
         }
+    }
+
+    uint32_t nodesSent = 0, curHops = 0;
+    while(nodesSent < remoteNodes.size())
+    {
+        auto_ptr<BGP> b (new BGP);
+        b->AS = ASno;
+
+        for(RemoteNodeMap::iterator it = remoteNodes.begin(); it != remoteNodes.end(); ++it)
+        {
+            if(it->second.second == curHops)
+            {
+                b->nets.push_back(it->first);
+            }
+        }
+
+        nodesSent += b->nets.size();
+        sendBGP(b);
+        curHops++;
     }
 
 }
