@@ -20,11 +20,8 @@
 using namespace std;
 using namespace cs6390;
 
-void ui_help(string message="")
+void ui_help()
 {
-    if(message != "")
-        cerr << message << endl << endl;
-
     cout<< "Enter one of the following commands: " << endl
         << " RT <net>" << endl
         << " UP <net>" << endl
@@ -92,11 +89,12 @@ int main(int argc, char ** argv)
     }
 
     cout << endl << endl;
+
+    ui_help();
     while (!stopping) {
         string line = "";
         uint32_t arg = 0;
-        ui_help();
-        cout << "> ";
+        cout << ">>> "; //steal the python shell prompt because I love it so --Matt
 
         getline(cin, line);
         if(cin.eof()) break;    //die on CTRL-D
@@ -184,11 +182,15 @@ int main(int argc, char ** argv)
         else if(v[0] == "EXIT") {
             break;
         }
+        else if(v[0] == "HELP" || v[0] == "?") {
+            ui_help();
+        }
         else if(v[0] == "") {
             continue;
         }
-        else{
+        else {
             cout << "Unknown command: " << v[0] << endl;
+            ui_help();
         }
     }
 
