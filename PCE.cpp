@@ -55,13 +55,15 @@ typedef pair<uint32_t, uint32_t> RemoteNodeMapValue;
 typedef pair<uint32_t, RemoteNodeMapValue> RemoteNodeMapEntry;
 typedef map<uint32_t, RemoteNodeMapValue> RemoteNodeMap;
 
+
+
 typedef struct 
 {
     Socket *s;
     bool *update;
 } recvThreadParams_t;
 
-typedef std::pair<pthread_t, recvThreadParams_t> RecvThreadId;
+typedef pair<pthread_t, recvThreadParams_t> RecvThreadId;
 
 typedef struct
 {
@@ -113,13 +115,27 @@ void pdie(const char * msg, int rc=1)
     _exit(rc);
 }
 
-void sendBGP(auto_ptr<BGP> b)
+//ASs our AS is directly connected to
+//  AS        routerlist
+map<uint32_t, vector<uint32_t> > connected_AS;
+PCEconfig *config;
+void sendBGP(BGP &b, uint32_t from=0xffffffff)
 {
-//implement sending the BGP message to all the PCEs
-//in class, someone brought up a good point (GASP!)
-//we shouldn't send BGP messages to ASs that we don't know if they're neighbors or not
-//we'll have to talk about how to implement that
+    //implement sending the BGP message to all the PCEs
+    //in class, someone brought up a good point (GASP!)
+    //we shouldn't send BGP messages to ASs that we don't know if they're neighbors or not
+    //we'll have to talk about how to implement that
+    map<uint32_t, vector<uint32_t> >::const_iterator it;
+    for(it = connected_AS.begin(); it != connected_AS.end(); it++)
+    {
+        if(it->first != from) {
+            AS a=config->getAS(it->first);
+            Socket s( &a.saddr);
+            s.sendMessage(b);
+        }
+    }
 }
+//Done --matt
 
 RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
 {
@@ -183,8 +199,17 @@ void MessageResponder::recvLSA()
     auto_ptr<LSA> r(dynamic_cast<LSA *> (in));
     cout << r.get();
     uint32_t id = r->routerID;
+    uint32_t neighbor = r->neighborAS;
 
     MutexLocker lock(&graphMutex);
+
+    //update connected_AS map
+    if(neighbor != 99) {
+        if( connected_AS.find(neighbor) == connected_AS.end() )
+            connected_AS[neighbor] = vector<uint32_t>();
+        if( find( connected_AS[neighbor].begin(), connected_AS[neighbor].end(), id) == connected_AS[neighbor].end() )
+            connected_AS[neighbor].push_back(id);
+    }
 
     vector<uint32_t> nets;
     for(LinkMap::iterator it = r->getLinkMap()->begin();
@@ -234,18 +259,20 @@ void MessageResponder::recvLSA()
     uint32_t nodesSent = 0, curHops = 0;
     while(nodesSent < remoteNodes.size())
     {
-        auto_ptr<BGP> b (new BGP);
-        b->AS = ASno;
+        //just use stack var for this...
+        BGP b;
+        b.AS = ASno;
 
         for(RemoteNodeMap::iterator it = remoteNodes.begin(); it != remoteNodes.end(); ++it)
         {
             if(it->second.second == curHops)
             {
-                b->nets.push_back(it->first);
+                b.nets.push_back(it->first);
             }
         }
 
-        nodesSent += b->nets.size();
+        nodesSent += b.nets.size();
+
         sendBGP(b);
         curHops++;
     }
@@ -257,20 +284,27 @@ void MessageResponder::recvBGP()
     auto_ptr<BGP> b(dynamic_cast<BGP *> (in));
 
     b->AS_hops++;
+    bool changed=false;
 
     for(vector<uint32_t>::iterator it = b->nets.begin(); it != b->nets.end(); ++it)
     {
-        std::pair<RemoteNodeMap::iterator, bool> test = remoteNodes.insert(RemoteNodeMapEntry(*it, RemoteNodeMapValue(b->AS, b->AS_hops)));
+        pair<RemoteNodeMap::iterator, bool> test = remoteNodes.insert(RemoteNodeMapEntry(*it, RemoteNodeMapValue(b->AS, b->AS_hops)));
         if(test.second == false)
         {
             if(b->AS_hops < test.first->second.second)
             {
                 test.first->second = RemoteNodeMapValue(b->AS, b->AS_hops);
+                changed=true;
             }
         }
     }
 
-    sendBGP(b);
+    if(changed) {
+        uint32_t from = b->AS;
+        b->AS=ASno;
+        b->AS_hops++;
+        sendBGP( (*b.get()), from );
+    }
 
 }
 
@@ -433,12 +467,12 @@ int main(int argc, char ** argv)
 
     try { ASno = boost::lexical_cast<uint32_t>(argv[1]); }
     catch (...) { PCE_usage("First argument must be integer"); }
-    PCEconfig config(argv[2]);
+    config = new PCEconfig(argv[2]);
 
     cout << "AS: " << ASno << endl;
-    cout << config;
+    cout << *config;
 
-    AS me = config.getAS(ASno);
+    AS me = config->getAS(ASno);
 
     ListenSocket sock(me.portno);
 
