@@ -115,7 +115,7 @@ int LSA::setLinkMetric(uint32_t metric)
 LSA::LSA(vector<string> &v)
 {
     if(v.size() < 4) 
-        throw DeserializationException("too few parameters");
+        throw DeserializationException("too few parameters for LSA");
     else if(v.size() % 2 != 0)
         throw DeserializationException("odd number of parameters");
     type = v[0];
@@ -169,7 +169,7 @@ int LSA::test(short port)
 RREQ::RREQ(vector<string> &v)
 {
     if(v.size() != 3)
-        throw DeserializationException("too few parameters");
+        throw DeserializationException("too few parameters for RREQ");
     type = v[0];
     source = boost::lexical_cast<uint32_t>(v[1]);
     dest = boost::lexical_cast<uint32_t>(v[2]);
@@ -199,7 +199,7 @@ int RREQ::test(short port)
 BGP::BGP(vector<string> &v)
 {
     if(v.size() < 3)
-        throw DeserializationException("too few parameters");
+        throw DeserializationException("too few parameters for BGP");
     type    = v[0];
     AS      = boost::lexical_cast<uint32_t>(v[1]);
     AS_hops = boost::lexical_cast<uint32_t>(v[2]);
@@ -238,7 +238,7 @@ int BGP::test(short port)
 RRES::RRES(vector<string> &v)
 {
     if(v.size() < 2)
-        throw DeserializationException("too few parameters");
+        throw DeserializationException("too few parameters for RRES");
     type    = v[0];
     for(uint32_t i=1; i < v.size(); i++)
         routers.push_back( boost::lexical_cast<uint32_t>(v[i]) );
@@ -271,7 +271,7 @@ int RRES::test(short port)
 IRRQ::IRRQ(vector<string> &v)
 {
     if(v.size() != 3)
-        throw DeserializationException("too few parameters");
+        throw DeserializationException("too few parameters for IRRQ");
     type = v[0];
     AS = boost::lexical_cast<uint32_t>(v[1]);
     dest_net = boost::lexical_cast<uint32_t>(v[2]);
@@ -304,7 +304,7 @@ int IRRQ::test(short port)
 IRRS::IRRS(vector<string> &v)
 {
     if( v.size() < 3)
-        throw DeserializationException("too few parameters");
+        throw DeserializationException("too few parameters for IRRS");
     type = v[0];
     if(v[v.size() -1] == "BLK") {
         blank=true;

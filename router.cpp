@@ -117,16 +117,23 @@ int main(int argc, char ** argv)
                 cout << "argument to RT must be in range [0:99]" << endl;
                 continue;
             }
+            cout<< "Calculating route to " << arg << endl;
+
             Socket s(&myAS.saddr);
             RREQ mOUT;
             mOUT.source=localStatus.routerID;
             mOUT.dest=arg;
             s.sendMessage(mOUT);
             
-            cout<< "Calculating route to " << arg << endl;
             Message* min=s.getMessage();
-            if(min != NULL) {
-                cout << "Result: " << min << endl;
+            if(min != NULL ) {
+                RRES *r = (RRES*)min;
+                if(r->routers[0] == 0) {
+                    cout << "No route to destination" << endl;
+                }
+                else {
+                    cout << "Result: " << r << endl;
+                }
                 delete min;
             }
             else {

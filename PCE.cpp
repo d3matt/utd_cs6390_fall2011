@@ -140,9 +140,55 @@ void sendBGP(BGP &b, uint32_t from=0xffffffff)
 
         }
     }
-            cout << "here" << endl;
 }
 //Done --matt
+
+RRES sendIRRQ(uint32_t dest)
+{
+    RRES resp;
+
+    RemoteNodeMap::iterator it = remoteNodes.find(dest);
+    if(it != remoteNodes.end())
+    {
+        IRRQ r;
+        r.AS = ASno;
+        r.dest_net = dest;
+
+        AS a = config->getAS(it->second.first);
+        Socket *s = NULL;
+        try {
+            s = new Socket( &a.saddr);
+        }
+        catch(...) {
+            cerr << "Failed to connect to the remote PCE" << endl;
+        }
+
+        if(s->isConnected())
+        {
+            IRRS *m;
+            try {
+                s->sendMessage(r);
+                m = (IRRS*)s->getMessage();
+
+                if(!m->blank)
+                {
+                    for(list<ASroute>::iterator iter = m->ASlist.begin(); iter != m->ASlist.end(); ++iter) {
+                        resp.routers.insert(resp.routers.end(), iter->second.begin(), iter->second.end());
+                    }
+                }
+
+            }
+            catch(...) {
+                cerr << "Failed to get min route" << endl;
+            }
+        }
+        if(s != NULL) {
+            delete s;
+        }
+    }
+
+    return resp;
+}
 
 RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
 {
@@ -160,7 +206,6 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
 
         numEdges = edges.size();
         numNodes = nodes.size();
-    startNode = nodes.find(startNode)->second[0];
 
         if(numNodes && numEdges)
         {
@@ -187,15 +232,10 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
         {
             break;
         }
-        else if(localP[endNode] < endNode)
-        {
-            resp.routers.insert(resp.routers.begin(), edges.find(Edge(localP[endNode], endNode))->second.first);
-        }
-        else
-        {
-            resp.routers.insert(resp.routers.begin(), edges.find(Edge(endNode, localP[endNode]))->second.first);
-        }
-        endNode = localP[endNode];
+
+        resp.routers.insert(resp.routers.begin(), (localP[endNode]-(ASno*100)));
+
+        endNode = localP[localP[endNode]];
     }
 
     return resp;
@@ -232,26 +272,24 @@ void MessageResponder::recvLSA()
         test.first->second = nets;
     }
 
-    for(LinkMap::iterator it = r->getLinkMap()->begin();
-        it != r->getLinkMap()->end(); ++it)
-    {
+    uint32_t routerAsNode = id+(ASno*100);
 
         for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
             iter1 != r->getLinkMap()->end(); ++iter1)
         {
-            for(LinkMap::iterator iter2 = iter1;
+            /*for(LinkMap::iterator iter2 = iter1;
                 iter2 != r->getLinkMap()->end(); ++iter2)
             {
                 if(iter2 == iter1) continue;
-
-                Edge newEdge(iter1->first, iter2->first);
-                if(iter1->second == 99 || iter2->second == 99)
+*/
+                Edge newEdge(iter1->first, routerAsNode);
+                if(iter1->second == 99)
                 {
                     edges.erase(newEdge);
                 }
                 else
                 {
-                    uint32_t metric = max(iter1->second, iter2->second);
+                    uint32_t metric = iter1->second;
 
                     pair<EdgeMap::iterator, bool> test = edges.insert(EdgeMapEntry(newEdge, EdgeMapValue(id, metric)));
                     if(test.second == false)
@@ -259,9 +297,8 @@ void MessageResponder::recvLSA()
                         test.first->second.second = metric;
                     }
                 }
-            }
+            //}
         }
-    }
 
     uint32_t nodesSent = 0, curHops = 0;
     while(nodesSent < remoteNodes.size())
@@ -309,11 +346,6 @@ void MessageResponder::recvBGP()
         }
     }
 
-    for(RemoteNodeMap::iterator it = remoteNodes.begin(); it != remoteNodes.end(); ++it)
-    {
-        cout << it->first << " is " << it->second.second << " hops away" << endl;
-    }
-
     if(changed) {
         uint32_t from = b->AS;
         b->AS=ASno;
@@ -326,9 +358,25 @@ void MessageResponder::recvBGP()
 void MessageResponder::recvRREQ()
 {
     auto_ptr<RREQ> r(dynamic_cast<RREQ *> (in));
-    cout << r.get();
 
-    RRES res = localDijkstra(r->source, r->dest);
+    r->source += (ASno * 100);
+
+    RRES res;
+    
+    uint32_t distance = remoteNodes.find(r->dest)->second.second;
+    if(distance == 0)
+    {
+        res = localDijkstra(r->source, r->dest);
+    }
+    else
+    {
+        res = sendIRRQ(r->dest);
+    }
+
+    if(res.routers.empty())
+    {
+        res.routers.push_back(0);
+    }
 
 
     s->sendMessage(res);
@@ -342,11 +390,16 @@ void MessageResponder::recvRRES()
 void MessageResponder::recvIRRQ()
 {
     auto_ptr<IRRQ> r(dynamic_cast<IRRQ *> (in));
+    IRRS m;
+    m.ASlist.push_front(ASroute(ASno, vector<uint32_t>()));
+    m.blank = true;
+    s->sendMessage(m);
 }
 
 void MessageResponder::recvIRRS()
 {
     auto_ptr<IRRS> r(dynamic_cast<IRRS *> (in));
+    cerr << "ERROR: EXTRANEOUS IRRS MESSAGE!" << endl;
 }
 
 void MessageResponder::recv()
