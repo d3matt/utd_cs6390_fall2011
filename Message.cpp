@@ -115,12 +115,12 @@ int LSA::setLinkMetric(uint32_t metric)
 LSA::LSA(vector<string> &v)
 {
     if(v.size() < 4) 
-        throw DeserializationException("too few parameters for LSA");
+        THROW_DES("too few parameters for LSA");
     else if(v.size() % 2 != 0)
-        throw DeserializationException("odd number of parameters");
+        THROW_DES("odd number of parameters");
     type = v[0];
     if(type != "LSA")
-        throw DeserializationException("wrong message type");
+        THROW_DES("wrong message type");
     routerID = boost::lexical_cast<uint32_t>(v[1]);
     neighborAS = boost::lexical_cast<uint32_t>(v[2]);
     neighborRouterID = boost::lexical_cast<uint32_t>(v[3]);
@@ -169,7 +169,7 @@ int LSA::test(short port)
 RREQ::RREQ(vector<string> &v)
 {
     if(v.size() != 3)
-        throw DeserializationException("too few parameters for RREQ");
+        THROW_DES("wrong number of parameters for RREQ");
     type = v[0];
     source = boost::lexical_cast<uint32_t>(v[1]);
     dest = boost::lexical_cast<uint32_t>(v[2]);
@@ -199,7 +199,7 @@ int RREQ::test(short port)
 BGP::BGP(vector<string> &v)
 {
     if(v.size() < 3)
-        throw DeserializationException("too few parameters for BGP");
+        THROW_DES("too few parameters for BGP");
     type    = v[0];
     AS      = boost::lexical_cast<uint32_t>(v[1]);
     AS_hops = boost::lexical_cast<uint32_t>(v[2]);
@@ -238,7 +238,7 @@ int BGP::test(short port)
 RRES::RRES(vector<string> &v)
 {
     if(v.size() < 2)
-        throw DeserializationException("too few parameters for RRES");
+        THROW_DES("too few parameters for RRES");
     type    = v[0];
     for(uint32_t i=1; i < v.size(); i++)
         routers.push_back( boost::lexical_cast<uint32_t>(v[i]) );
@@ -271,7 +271,7 @@ int RRES::test(short port)
 IRRQ::IRRQ(vector<string> &v)
 {
     if(v.size() != 3)
-        throw DeserializationException("too few parameters for IRRQ");
+        THROW_DES("too few parameters for IRRQ");
     type = v[0];
     AS = boost::lexical_cast<uint32_t>(v[1]);
     dest_net = boost::lexical_cast<uint32_t>(v[2]);
@@ -304,13 +304,13 @@ int IRRQ::test(short port)
 IRRS::IRRS(vector<string> &v)
 {
     if( v.size() < 3)
-        throw DeserializationException("too few parameters for IRRS");
+        THROW_DES("too few parameters for IRRS");
     type = v[0];
     if(v[v.size() -1] == "BLK") {
         blank=true;
         for(vector<string>::const_iterator it = v.begin() +1 ; *it != "BLK" ; it++) {
             if(it->substr(0,2) != "AS")
-                throw DeserializationException(string("WTF") + *it);
+                THROW_DES(string("WTF") + *it);
             ASlist.push_back( 
                 make_pair(
                     boost::lexical_cast<uint32_t>(it->substr(2, string::npos)), 
@@ -324,7 +324,7 @@ IRRS::IRRS(vector<string> &v)
         for(it1=v.begin() + 1; it1 != v.end(); it1++)
         {
             if(it1->substr(0,2) != "AS")
-                throw DeserializationException(string("WTF") + *it1);
+                THROW_DES(string("WTF") + *it1);
             uint32_t as=boost::lexical_cast<uint32_t>(it1->substr(2, string::npos));
             vector<uint32_t> intv;
 

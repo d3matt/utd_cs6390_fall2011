@@ -4,6 +4,8 @@
 #ifndef __EXCEPTIONS_H__
 #define __EXCEPTIONS_H__
 
+#define THROW_DES(msg) throw DeserializationException(msg,__FILE__,__LINE__)
+
 class easyException : public std::exception
 {
 public:
@@ -26,6 +28,7 @@ public:
 class DeserializationException : public easyException {
 public:
     DeserializationException(std::string s) : easyException(s) {}
+    DeserializationException(std::string s, const char * f, uint32_t l) : easyException(s,f,l) {}
 };
 
 #endif // __EXCEPTIONS_H__
