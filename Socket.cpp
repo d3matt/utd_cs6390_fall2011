@@ -192,11 +192,21 @@ ListenSocket::ListenSocket(uint16_t port)
     if( (sockFD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         THROW_SE("Failed to create a socket");
     }
+
+    int       reuse=1;
+    /* set SO_REUSEADDR so echoserv will be able to be re-run instantly on shutdown */
+    if(setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
+        close(sockFD);
+        THROW_SE("Failed to set SO_REUSEADDR");
+    }
+
     if( bind( sockFD, (const sockaddr *)&servaddr, sizeof(servaddr) ) ) {
+        close(sockFD);
         THROW_SE("Failed to bind socket");
     }
     if( listen(sockFD, 5) < 0 )
     {
+        close(sockFD);
         THROW_SE("Failed to listen on socket");
     }
 }
