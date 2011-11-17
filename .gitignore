@@ -10,3 +10,5 @@ echoserv
 router
 Message_test
 PCE
+core
+core.*
