@@ -558,7 +558,8 @@ int main(int argc, char ** argv)
     //pthread_create(&workerId, 0, workerThread, &workerParams);
     
     vector<RecvThreadId*> threadIds;
-    
+
+#ifndef __CYGWIN__    
     while(1)
     {
         RecvThreadId *id = new RecvThreadId();    
@@ -587,6 +588,7 @@ int main(int argc, char ** argv)
     }
 
     pthread_tryjoin_np(workerId, NULL);
+#endif //__CYGWIN
 
 /*
     for(vector<recvThreadParams_t*>::iterator it = threadParams.begin();
