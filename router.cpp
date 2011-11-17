@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <signal.h>
+#include <climits>
 
 #include <vector>
 #include <boost/lexical_cast.hpp>
@@ -128,7 +129,7 @@ int main(int argc, char ** argv)
             Message* min=s.getMessage();
             if(min != NULL ) {
                 RRES *r = (RRES*)min;
-                if(r->routers[0] == 0) {
+                if(r->routers[0] == UINT_MAX) {
                     cout << "No route to destination" << endl;
                 }
                 else {

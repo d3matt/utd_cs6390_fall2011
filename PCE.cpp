@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <climits>
 #include <iostream>
 
 #include <vector>
@@ -233,7 +234,7 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode)
             break;
         }
 
-        resp.routers.insert(resp.routers.begin(), (localP[endNode]-(ASno*100)));
+        resp.routers.insert(resp.routers.begin(), (localP[endNode]-((ASno+1)*100)));
 
         endNode = localP[localP[endNode]];
     }
@@ -272,7 +273,7 @@ void MessageResponder::recvLSA()
         test.first->second = nets;
     }
 
-    uint32_t routerAsNode = id+(ASno*100);
+    uint32_t routerAsNode = id+((ASno+1)*100);
 
         for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
             iter1 != r->getLinkMap()->end(); ++iter1)
@@ -359,7 +360,7 @@ void MessageResponder::recvRREQ()
 {
     auto_ptr<RREQ> r(dynamic_cast<RREQ *> (in));
 
-    r->source += (ASno * 100);
+    r->source += ((ASno+1) * 100);
 
     RRES res;
     
@@ -375,7 +376,7 @@ void MessageResponder::recvRREQ()
 
     if(res.routers.empty())
     {
-        res.routers.push_back(0);
+        res.routers.push_back(UINT_MAX);
     }
 
 
@@ -385,6 +386,7 @@ void MessageResponder::recvRREQ()
 void MessageResponder::recvRRES()
 {
     auto_ptr<RRES> r(dynamic_cast<RRES *> (in));
+    cerr << "ERROR: EXTRANEOUS RRES MESSAGE!" << endl;
 }
 
 void MessageResponder::recvIRRQ()
