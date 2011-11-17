@@ -559,7 +559,6 @@ int main(int argc, char ** argv)
     
     vector<RecvThreadId*> threadIds;
 
-#ifndef __CYGWIN__    
     while(1)
     {
         RecvThreadId *id = new RecvThreadId();    
@@ -570,6 +569,7 @@ int main(int argc, char ** argv)
 
         threadIds.push_back(id);
 
+#ifndef __CYGWIN__    
         for(vector<RecvThreadId*>::iterator it = threadIds.begin();
             it != threadIds.end(); ++it)
         {
@@ -585,8 +585,10 @@ int main(int argc, char ** argv)
                 threadIds.erase(it);
             }
         }
+#endif //__CYGWIN
     }
 
+#ifndef __CYGWIN__    
     pthread_tryjoin_np(workerId, NULL);
 #endif //__CYGWIN
 
