@@ -129,7 +129,7 @@ int main(int argc, char ** argv)
             Message* min=s.getMessage();
             if(min != NULL ) {
                 RRES *r = (RRES*)min;
-                if(r->routers[0] == UINT_MAX) {
+                if(r->routers[0] == 99) {
                     cout << "No route to destination" << endl;
                 }
                 else {

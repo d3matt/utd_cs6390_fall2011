@@ -118,7 +118,9 @@ void pdie(const char * msg, int rc=1)
 
 //ASs our AS is directly connected to
 //  AS        routerlist
-map<uint32_t, vector<uint32_t> > connected_AS;
+
+typedef map<uint32_t, vector<uint32_t> > ConnectedASMap;
+ConnectedASMap connected_AS;
 PCEconfig *config;
 void sendBGP(BGP &b, uint32_t from=0xffffffff)
 {
@@ -126,7 +128,7 @@ void sendBGP(BGP &b, uint32_t from=0xffffffff)
     //in class, someone brought up a good point (GASP!)
     //we shouldn't send BGP messages to ASs that we don't know if they're neighbors or not
     //we'll have to talk about how to implement that
-    map<uint32_t, vector<uint32_t> >::const_iterator it;
+    ConnectedASMap::const_iterator it;
     for(it = connected_AS.begin(); it != connected_AS.end(); ++it)
     {
         if(it->first != from) {
@@ -144,9 +146,9 @@ void sendBGP(BGP &b, uint32_t from=0xffffffff)
 }
 //Done --matt
 
-RRES sendIRRQ(uint32_t dest)
+IRRS sendIRRQ(uint32_t dest)
 {
-    RRES resp;
+    IRRS resp;
 
     RemoteNodeMap::iterator it = remoteNodes.find(dest);
     if(it != remoteNodes.end())
@@ -171,13 +173,7 @@ RRES sendIRRQ(uint32_t dest)
                 s->sendMessage(r);
                 m = (IRRS*)s->getMessage();
 
-                if(!m->blank)
-                {
-                    for(list<ASroute>::iterator iter = m->ASlist.begin(); iter != m->ASlist.end(); ++iter) {
-                        resp.routers.insert(resp.routers.end(), iter->second.begin(), iter->second.end());
-                    }
-                }
-
+                resp = *m;
             }
             catch(...) {
                 cerr << "Failed to get min route" << endl;
@@ -278,27 +274,21 @@ void MessageResponder::recvLSA()
         for(LinkMap::iterator iter1 = r->getLinkMap()->begin();
             iter1 != r->getLinkMap()->end(); ++iter1)
         {
-            /*for(LinkMap::iterator iter2 = iter1;
-                iter2 != r->getLinkMap()->end(); ++iter2)
+            Edge newEdge(iter1->first, routerAsNode);
+            if(iter1->second == 99)
             {
-                if(iter2 == iter1) continue;
-*/
-                Edge newEdge(iter1->first, routerAsNode);
-                if(iter1->second == 99)
-                {
-                    edges.erase(newEdge);
-                }
-                else
-                {
-                    uint32_t metric = iter1->second;
+                edges.erase(newEdge);
+            }
+            else
+            {
+                uint32_t metric = iter1->second;
 
-                    pair<EdgeMap::iterator, bool> test = edges.insert(EdgeMapEntry(newEdge, EdgeMapValue(id, metric)));
-                    if(test.second == false)
-                    {
-                        test.first->second.second = metric;
-                    }
+                pair<EdgeMap::iterator, bool> test = edges.insert(EdgeMapEntry(newEdge, EdgeMapValue(id, metric)));
+                if(test.second == false)
+                {
+                    test.first->second.second = metric;
                 }
-            //}
+            }
         }
 
     uint32_t nodesSent = 0, curHops = 0;
@@ -360,23 +350,31 @@ void MessageResponder::recvRREQ()
 {
     auto_ptr<RREQ> r(dynamic_cast<RREQ *> (in));
 
-    r->source += ((ASno+1) * 100);
+    uint32_t source = 0;
+    source = r->source + ((ASno+1) * 100);
 
     RRES res;
     
     uint32_t distance = remoteNodes.find(r->dest)->second.second;
     if(distance == 0)
     {
-        res = localDijkstra(r->source, r->dest);
+        res = localDijkstra(source, r->dest);
     }
     else
     {
-        res = sendIRRQ(r->dest);
+        IRRS m;
+        m = sendIRRQ(r->dest);
+        if(!m.blank)
+        {
+            for(list<ASroute>::iterator iter = m.ASlist.begin(); iter != m.ASlist.end(); ++iter) {
+                res.routers.insert(res.routers.end(), iter->second.begin(), iter->second.end());
+            }
+        }
     }
 
     if(res.routers.empty())
     {
-        res.routers.push_back(UINT_MAX);
+        res.routers.push_back(99);
     }
 
 
@@ -392,9 +390,58 @@ void MessageResponder::recvRRES()
 void MessageResponder::recvIRRQ()
 {
     auto_ptr<IRRQ> r(dynamic_cast<IRRQ *> (in));
+
     IRRS m;
-    m.ASlist.push_front(ASroute(ASno, vector<uint32_t>()));
-    m.blank = true;
+
+    if(remoteNodes[r->dest_net].second == 0)
+    {
+        vector<uint32_t>::iterator it;
+        RRES localRoute;
+        uint32_t min = UINT_MAX;
+
+        for(it = connected_AS.find(r->AS)->second.begin(); it != connected_AS.find(r->AS)->second.end(); ++it)
+        {
+            RRES res = localDijkstra((*it + ((ASno+1)*100)), r->dest_net);
+            cout << &res << endl;
+            if(res.routers.size() < min)
+            {
+                localRoute = res;
+                min = res.routers.size();
+            }
+        }
+        m.ASlist.push_front(ASroute(ASno, localRoute.routers));
+        if(m.ASlist.front().second.size() > 0)
+        {
+            m.blank = false;
+        }
+    }
+    else
+    {
+        m = sendIRRQ(r->dest_net);
+
+        if(m.blank)
+        {
+            m.ASlist.push_front(ASroute(ASno, vector<uint32_t>()));
+        }
+        else
+        {
+            vector<uint32_t>::iterator it;
+            RRES localRoute;
+            uint32_t min = UINT_MAX;
+            for(it = connected_AS.find(r->AS)->second.begin(); it != connected_AS.find(r->AS)->second.end(); ++it)
+            {
+                RRES res = localDijkstra(*it, r->dest_net);
+                if(res.routers.size() < min)
+                {
+                    localRoute = res;
+                    min = res.routers.size();
+                }
+            }
+            m.ASlist.push_front(ASroute(ASno, localRoute.routers));
+    
+        }
+    }
+
     s->sendMessage(m);
 }
 
