@@ -9,7 +9,6 @@ if __name__ == "__main__":
     if not os.path.exists(".log"):
         os.mkdir(".log")
     print "Spawning PCE 0"
-#    PCE=pexpect.spawn("./PCE 0 local.cfg", logfile=open(".log/PCE.log",'w'))
     PCE=spawnwrapper("./PCE 0 local.cfg", ".log/PCE.log")
     time.sleep(1)
 
@@ -30,7 +29,7 @@ if __name__ == "__main__":
     rt3.expect(">>>")
 
     print "Spawning router 4 (nets 0 7)"
-    rt4=spawnwrapper("./router 0 4 local.cfg  99 99 0 7", ".log/rt4.log" )
+    rt4=spawnwrapper("./router 0 4 local.cfg  99 99 1 7", ".log/rt4.log" )
     rt4.expect(">>>")
 
     print "Trying RT 0 at router 0"
@@ -44,10 +43,10 @@ if __name__ == "__main__":
     rt0.sendline("RT 7")
     rt0.expect(">>>")
 
-    RC |= check_routes(rt0.shell, "0 1 4")
+    RC |= check_routes(rt0.shell, "0 4")
 
-    print "Bringing down interface 0 on router 4"
-    rt4.sendline("DN 0")
+    print "Bringing down interface 1 on router 4"
+    rt4.sendline("DN 1")
     rt4.expect(">>>")
 
     print "Trying RT 7 at router 0 (again)"
