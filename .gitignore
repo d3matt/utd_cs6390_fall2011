@@ -5,6 +5,7 @@
 *.exe
 *.map
 *.stackdump
+*.pyc
 main
 echoserv
 router
@@ -12,3 +13,4 @@ Message_test
 PCE
 core
 core.*
+.log

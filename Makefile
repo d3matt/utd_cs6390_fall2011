@@ -69,6 +69,7 @@ clean:
 distclean: clean
 	rm -rf .depend
 	rm -rf project
+	rm -rf .log
 
 dist:
 	rm -rf project project.zip

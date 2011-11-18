@@ -1,73 +1,70 @@
 #!/usr/bin/env python
 
-import sys, time
+import os, os.path, sys, time
 import pexpect
+from test_common import *
 
 
-print "Spawning PCE 0"
-PCE=pexpect.spawn("./PCE 0 local.cfg")
-time.sleep(1)
+if __name__ == "__main__":
+    if not os.path.exists(".log"):
+        os.mkdir(".log")
+    print "Spawning PCE 0"
+#    PCE=pexpect.spawn("./PCE 0 local.cfg", logfile=open(".log/PCE.log",'w'))
+    PCE=spawnwrapper("./PCE 0 local.cfg", ".log/PCE.log")
+    time.sleep(1)
 
-print "Spawning router 0 (nets 1 2 3)"
-rt0=pexpect.spawn("./router 0 0 local.cfg  99 99 1 2 3")
+    print "Spawning router 0 (nets 1 2 3)"
+    rt0=spawnwrapper("./router 0 0 local.cfg  99 99 1 2 3", ".log/rt0.log" )
+    rt0.expect(">>>")
 
-print "Spawning router 1 (nets 0 1 4)"
-rt1=pexpect.spawn("./router 0 1 local.cfg  99 99 0 1 4")
+    print "Spawning router 1 (nets 0 1 4)"
+    rt1=spawnwrapper("./router 0 1 local.cfg  99 99 0 1 4", ".log/rt1.log" )
+    rt1.expect(">>>")
 
-print "Spawning router 2 (nets 4 5 6)"
-rt2=pexpect.spawn("./router 0 2 local.cfg  99 99 4 5 6")
+    print "Spawning router 2 (nets 4 5 6)"
+    rt2=spawnwrapper("./router 0 2 local.cfg  99 99 4 5 6", ".log/rt2.log" )
+    rt2.expect(">>>")
 
-print "Trying RT 0 at router 0"
-rt0.expect(">>>")
-rt0.sendline("RT 0")
-rt0.expect(">>>")
+    print "Spawning router 3 (nets 6 7)"
+    rt3=spawnwrapper("./router 0 3 local.cfg  99 99 6 7", ".log/rt3.log" )
+    rt3.expect(">>>")
 
-RC = 0
+    print "Spawning router 4 (nets 0 7)"
+    rt4=spawnwrapper("./router 0 4 local.cfg  99 99 0 7", ".log/rt4.log" )
+    rt4.expect(">>>")
 
-resultFound=False
-for line in rt0.before.splitlines():
-    if "Result:" in line:
-        resultFound=True
-        sp = line.split(":")
-        if sp[len(sp) - 1].strip() != "0 1":
-            print "FAILED!"
-            print "BEFORE: '" + rt0.before + "'"
-            print "AFTER:  '" + rt0.after  + "'"
-            RC = 1
-        else:
-            print "SUCCESS!"
-        break
-if not resultFound:
-    print "Result: not found!"
-    print "BEFORE: '" + rt0.before + "'"
-    print "AFTER:  '" + rt0.after  + "'"
+    print "Trying RT 0 at router 0"
+    rt0.sendline("RT 0")
+    rt0.expect(">>>")
 
-print "Trying RT 6 at router 0"
-rt0.sendline("RT 6")
-rt0.expect(">>>")
+    RC = 0
+    RC |= check_routes(rt0.shell, "0 1")
 
-resultFound=False
-for line in rt0.before.splitlines():
-    if "Result:" in line:
-        resultFound=True
-        sp = line.split(":")
-        if sp[len(sp) - 1].strip() != "0 1 2":
-            print "Routes wrong!"
-            print "BEFORE: '" + rt0.before + "'"
-            print "AFTER:  '" + rt0.after  + "'"
-            RC = 1
-        else:
-            print "SUCCESS!"
-        break
-if not resultFound:
-    print "Result: not found!"
-    print "BEFORE: '" + rt0.before + "'"
-    print "AFTER:  '" + rt0.after  + "'"
+    print "Trying RT 7 at router 0"
+    rt0.sendline("RT 7")
+    rt0.expect(">>>")
 
-print "Shutting down"
-rt0.terminate
-rt1.terminate
-rt2.terminate
-PCE.terminate
+    RC |= check_routes(rt0.shell, "0 1 4")
 
-sys.exit(RC)
+    print "Bringing down interface 0 on router 4"
+    rt4.sendline("DN 0")
+    rt4.expect(">>>")
+
+    print "Trying RT 7 at router 0 (again)"
+    rt0.sendline("RT 7")
+    rt0.expect(">>>")
+
+    RC |= check_routes(rt0.shell, "0 1 2 3")
+
+    sys.stdout.write("Shutting down ...")
+    sys.stdout.flush()
+    #setting the reference to None causes immediate garbage collection (and destructor) in python 2.7
+    rt0 = None
+    rt1 = None
+    rt2 = None
+    rt3 = None
+    rt4 = None
+    PCE = None
+    print " done"
+
+    sys.exit(RC)
