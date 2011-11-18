@@ -79,7 +79,10 @@ dist:
 message_unit_test: echoserv Message_test
 	python message_test.py
 
-tests: message_unit_test
+single_pce_test: PCE router
+	python single_pce_test.py
+
+tests: message_unit_test single_pce_test
 
 
 -include .depend/*.d
