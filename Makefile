@@ -78,12 +78,14 @@ dist:
 	zip project.zip project/*
 
 message_unit_test: echoserv Message_test
-	python message_test.py
+	$(HIDE) python message_test.py
 
 single_pce_test: PCE router
-	python single_pce_test.py
+	$(HIDE) python single_pce_test.py
 
-tests: message_unit_test single_pce_test
+multi_pce_test: single_pce_test
+	$(HIDE) python multi_pce_test.py
 
+tests: message_unit_test single_pce_test multi_pce_test
 
 -include .depend/*.d

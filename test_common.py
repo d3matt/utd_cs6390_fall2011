@@ -23,6 +23,21 @@ checks the result against the expected value"""
         print "'Result:' not found!"
         print "BEFORE: '" + pspawn.before + "'"
         print "AFTER:  '" + pspawn.after  + "'"
+        retval = 1
+    return retval
+
+def check_no_route(pspawn):
+    """parses the pexpect.spawn object looking for 'No route to destination'"""
+    retval = 0
+    result_found = False
+    for line in pspawn.before.splitlines():
+        if "No route to destination" == line:
+            print "SUCCESS!    "
+            result_found = True
+            break
+    if not result_found:
+        print "FAILED!"
+        retval = 1
     return retval
 
 class spawnwrapper(object):

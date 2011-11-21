@@ -64,6 +64,9 @@ if __name__ == "__main__":
     rt3 = None
     rt4 = None
     PCE = None
-    print " done"
+    if RC == 0:
+        print " PASS"
+    else:
+        print " FAIL"
 
     sys.exit(RC)

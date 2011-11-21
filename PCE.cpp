@@ -373,7 +373,6 @@ void MessageResponder::recvRREQ()
     {
         IRRS m;
         m = sendIRRQ(r->dest);
-        cout << &m;
         if(!m.blank)
         {
             uint32_t sourceAS = m.ASlist.front().first;
@@ -390,7 +389,6 @@ void MessageResponder::recvRREQ()
             }
 
             res = localDijkstra(source, (myRouter + ((ASno+1)*100)), true);
-            cout << &res;
             for(list<ASroute>::iterator iter = m.ASlist.begin(); iter != m.ASlist.end(); ++iter) {
                 res.routers.insert(res.routers.end(), iter->second.begin(), iter->second.end());
             }
@@ -427,7 +425,6 @@ void MessageResponder::recvIRRQ()
         for(it = connected_AS[r->AS].first.begin(); it != connected_AS[r->AS].first.end(); ++it)
         {
             RRES res = localDijkstra((*it + ((ASno+1)*100)), r->dest_net);
-            cout << &res << endl;
             if(res.routers.size() < min)
             {
                 localRoute = res;
@@ -452,7 +449,7 @@ void MessageResponder::recvIRRQ()
         {
             vector<uint32_t>::iterator it;
             RRES localRoute;
-            uint32_t min = UINT_MAX;
+            uint32_t min = UINT_MAX, min_source = 0;
             for(it = connected_AS[r->AS].first.begin(); it != connected_AS[r->AS].first.end(); ++it)
             {
                 uint32_t sourceAS = m.ASlist.front().first;
@@ -467,13 +464,15 @@ void MessageResponder::recvIRRQ()
                     }
                 }
 
-                RRES res = localDijkstra((*it + ((ASno+1)*100)), (myRouter + ((ASno+1)*100)));
+                RRES res = localDijkstra((*it + ((ASno+1)*100)), (myRouter + ((ASno+1)*100)), true);
                 if(res.routers.size() < min)
                 {
                     localRoute = res;
                     min = res.routers.size();
+                    min_source = *it;
                 }
             }
+            localRoute.routers.insert(localRoute.routers.begin(), min_source);
             m.ASlist.push_front(ASroute(ASno, localRoute.routers));
     
         }
