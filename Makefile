@@ -64,7 +64,7 @@ PCE: PCE.o $(COMMON_OBJECTS)
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
 
 clean:
-	rm -f *.map *.o $(BINLIST) core.*
+	rm -f *.map *.o $(BINLIST) core.* *.exe.stackdump
 
 distclean: clean
 	rm -rf .depend
