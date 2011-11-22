@@ -86,6 +86,9 @@ single_pce_test: PCE router
 multi_pce_test: single_pce_test
 	$(HIDE) python multi_pce_test.py
 
-tests: message_unit_test single_pce_test multi_pce_test
+star_pce_test: multi_pce_test
+	$(HIDE) python star_pce_test.py
+
+tests: message_unit_test single_pce_test multi_pce_test star_pce_test
 
 -include .depend/*.d

@@ -17,10 +17,13 @@ if __name__ == "__main__":
     print "Spawning PCE 2"
     PCE2=spawnwrapper("./PCE 2 local.cfg", ".log/PCE2.log")
 
+    print "Spawning PCE 3"
+    PCE3=spawnwrapper("./PCE 3 local.cfg", ".log/PCE3.log")
+
     time.sleep(1)
 
     print "Spawning router 0-0 (nets 0 1 2 )"
-    rt00=spawnwrapper("./router 0 0 local.cfg 99 99 0 1 2", ".log/rt00.log" )
+    rt00=spawnwrapper("./router 0 0 local.cfg 3 0 0 1 2", ".log/rt00.log" )
     rt00.expect(">>>")
 
     print "Spawning router 0-1 (nets 0 1 4)"
@@ -67,6 +70,14 @@ if __name__ == "__main__":
     rt23=spawnwrapper("./router 2 3 local.cfg  99 99 26 27 28", ".log/rt23.log" )
     rt23.expect(">>>")
 
+    print "Spawing router 3-0 (nets 30 31 32, PCE 0)"
+    rt30=spawnwrapper("./router 3 0 local.cfg 0 0 30 31 32", ".log/rt30.log" )
+    rt30.expect(">>>")
+
+    print "Spawing router 3-1 (nets 32 33 34)"
+    rt31=spawnwrapper("./router 3 1 local.cfg 99 99 32 33 34", ".log/rt31.log" )
+    rt31.expect(">>>")
+
     print "Trying RT 10 at router 3"
     rt03.sendline("RT 10")
     rt03.expect(">>>")
@@ -78,21 +89,18 @@ if __name__ == "__main__":
     rt03.sendline("RT 18")
     rt03.expect(">>>")
 
-    RC = 0
     RC |= check_routes(rt03.shell, "0 1 2 3")
 
     print "Trying RT 18 at router 0"
     rt00.sendline("RT 18")
     rt00.expect(">>>")
 
-    RC = 0
     RC |= check_routes(rt00.shell, "1 2 3 0 1 2 3")
     
     print "Trying RT 28 at router 0"
     rt00.sendline("RT 28")
     rt00.expect(">>>")
 
-    RC = 0
     RC |= check_routes(rt00.shell, "1 2 3 0 1 2 3 0 1 2 3")
 
     print "Taking down NET 16 at router 1-3"
@@ -103,8 +111,17 @@ if __name__ == "__main__":
     rt00.sendline("RT 18")
     rt00.expect(">>>")
 
-    RC = 0
     RC |= check_no_route(rt00.shell)
+
+    print "Bringing NET 16 at router 1-3 UP"
+    rt13.sendline("UP 16")
+    rt13.expect(">>>")
+
+    print "Trying RT 28 at router 3 1"
+    rt31.sendline("RT 28")
+    rt31.expect(">>>")
+
+    RC |= check_routes(rt31.shell, "0 0 1 2 3 0 1 2 3 0 1 2 3")
 
     sys.stdout.write("Shutting down ...")
     sys.stdout.flush()
@@ -121,9 +138,12 @@ if __name__ == "__main__":
     rt21 = None
     rt22 = None
     rt23 = None
+    rt30 = None
+    rt31 = None
     PCE0 = None
     PCE1 = None
     PCE2 = None
+    PCE3 = None
     if RC == 0:
         print( " PASS")
     else:
