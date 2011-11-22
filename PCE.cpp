@@ -472,8 +472,15 @@ void MessageResponder::recvIRRQ()
                     min_source = *it;
                 }
             }
-            localRoute.routers.insert(localRoute.routers.begin(), min_source);
-            m.ASlist.push_front(ASroute(ASno, localRoute.routers));
+			if(localRoute.routers.empty())
+			{
+				m.blank = true;
+			}
+			else
+			{
+	            localRoute.routers.insert(localRoute.routers.begin(), min_source);
+	            m.ASlist.push_front(ASroute(ASno, localRoute.routers));	
+			}
     
         }
     }

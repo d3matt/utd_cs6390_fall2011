@@ -98,20 +98,20 @@ if __name__ == "__main__":
     rt21.sendline("UP 22")
     rt21.expect(">>>")
 
-    #The following test failes
-    #print "Taking down NET 30 at router 3-1"
-    #rt31.sendline("DN 30")
-    #rt31.expect(">>>")
+    #The following test fails
+    print "Taking down NET 30 at router 3-1"
+    rt31.sendline("DN 30")
+    rt31.expect(">>>")
 
-    #print "Taking down NET 32 at router 3-1"
-    #rt31.sendline("DN 32")
-    #rt31.expect(">>>")
+    print "Taking down NET 32 at router 3-1"
+    rt31.sendline("DN 32")
+    rt31.expect(">>>")
 
-    #print "Trying RT 22 at router 1 2"
-    #rt12.sendline("RT 22")
-    #rt12.expect(">>>")
+    print "Trying RT 22 at router 1 2"
+    rt12.sendline("RT 22")
+    rt12.expect(">>>")
 
-    #RC |= check_routes(rt12.shell, "0 1 2 0 2")
+    RC |= check_no_route(rt12.shell)
 
     sys.stdout.write("Shutting down ...")
     sys.stdout.flush()
