@@ -98,6 +98,7 @@ if __name__ == "__main__":
     rt21.sendline("UP 22")
     rt21.expect(">>>")
 
+    #The following test failes
     #print "Taking down NET 30 at router 3-1"
     #rt31.sendline("DN 30")
     #rt31.expect(">>>")
