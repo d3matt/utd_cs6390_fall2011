@@ -78,21 +78,25 @@ dist:
 	zip project.zip project/*
 
 message_unit_test: echoserv Message_test
+	$(HIDE) mkdir -p .log
 	$(HIDE) echo -n "Running message_test.py..."
 	$(HIDE) python message_test.py > .log/message_test.log
 	$(HIDE) echo "PASS"
 
 single_pce_test: PCE router
+	$(HIDE) mkdir -p .log
 	$(HIDE) echo -n "Running single_pce_test.py..."
 	$(HIDE) python single_pce_test.py > .log/single_pce_test.log
 	$(HIDE) echo "PASS"
 
 multi_pce_test: single_pce_test
+	$(HIDE) mkdir -p .log
 	$(HIDE) echo -n "Running multi_pce_test.py..."
 	$(HIDE) python multi_pce_test.py > .log/multi_pce_test.log
 	$(HIDE) echo "PASS"
 
 star_pce_test: multi_pce_test
+	$(HIDE) mkdir -p .log
 	$(HIDE) echo -n "Running star_pce_test.py..."
 	$(HIDE) python star_pce_test.py > .log/star_pce_test.log
 	$(HIDE) echo "PASS"
