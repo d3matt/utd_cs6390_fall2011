@@ -18,6 +18,10 @@
 namespace cs6390
 {
 
+//simple wrapper around BSD tcp sockets
+//  basic idea is to write the code to deal with opening/closing sockets once
+//  uses children of Message for send/recv
+//  as implemented will only work with ascii text
 class Socket
 {
 protected:
@@ -42,6 +46,7 @@ public:
     ~Socket();
     bool isConnected() { return connected; }
 
+    //socket exceptions
     struct NotConnectedException : public easyException {
         NotConnectedException() : easyException("Not Connected") {}
         NotConnectedException(const char * f, uint32_t l) : easyException("Not Connected", f, l) {}
@@ -51,12 +56,14 @@ public:
         SocketException(std::string msg, const char * f, uint32_t l) : easyException(msg, f, l) {}
     } ;
 
+    //can be used to send arbitrary strings
     void sendToSocket(std::string str)
     {
         myBuf.str(str);
         output();
     }
 
+    //get and recv a Message
     int                 sendMessage(Message &m);
     Message *           getMessage();
 

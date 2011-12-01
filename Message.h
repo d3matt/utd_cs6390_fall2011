@@ -127,9 +127,12 @@ public:
     vector<uint32_t> routers;
     
             RRES() : Message("RRES") {}
+
+    //serialization/deserialization
             RRES(vector<string> &v);
     string  serialize(bool readable=false) const;
 
+    //basic RRES unit test
     static int test(short port);
 };
 
@@ -142,8 +145,11 @@ public:
             IRRQ(int32_t AS=0xff, int32_t dest_net=0xff) :
                 Message("IRRQ"), AS(AS), dest_net(dest_net) {}
             IRRQ(vector<string> &v);
+
+    //serialization/deserialization
     string  serialize(bool readable=false) const;
 
+    //basic RRES unit test
     static int test(short port);
 };
 
@@ -156,11 +162,14 @@ public:
     bool                blank;
 
             IRRS() : Message("IRRS") {}
+
+    //serialization/deserialization
             IRRS(vector<string> &v);
     string  serialize(bool readable=false) const;
 
-    static int test_route(short port);
-    static int test_blk(short port);
+    //IRRS tests
+    static int test_route(short port);  //tests a message with an actual route
+    static int test_blk(short port);    //tests a message with only a BLK
     static int test(short port);
 };
 
