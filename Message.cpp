@@ -9,7 +9,6 @@
 #include "Socket.h"
 #include "Exceptions.h"
 #include "Message.h"
-#include "utils.h"
 #include "usage.h"
 
 using namespace std;
