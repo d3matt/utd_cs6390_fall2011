@@ -67,6 +67,7 @@ public:
     int                 sendMessage(Message &m);
     Message *           getMessage();
 
+    //print if socket is connected
     friend std::ostream & operator<< (std::ostream &ostr, Socket s)
     {
         if(s.connected)
@@ -77,6 +78,7 @@ public:
     }
 };
 
+//simple listen socket
 class ListenSocket : public Socket
 {
 public:
