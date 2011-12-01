@@ -23,6 +23,13 @@ namespace cs6390
 
 class Socket;
 
+//base message class
+//  all other Message types derive from this one.
+//  every derived class must implement:
+//      serialize(bool readable=false) const
+//          if readable is true, output is human readable
+//          human readable cannot be de-serialized
+//      contructor from a vector of strings
 class Message
 {
 

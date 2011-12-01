@@ -12,11 +12,9 @@ extern "C"
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-uint32_t * string_to_int(const char * str, uint32_t &ret);
-
-bool valid_AS(uint32_t AS);
-bool valid_router(uint32_t router);
-
+//simple class meant to be used as a stack variable.
+//  constructor locks the mutex
+//  destructor unlocks the mutex
 class MutexLocker
 {
 private:

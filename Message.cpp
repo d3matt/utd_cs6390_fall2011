@@ -17,6 +17,7 @@ using namespace std;
 namespace cs6390
 {
 
+//test case to ensure we don't receive an invalid message type
 int Message::test_catch(short port)
 {
     Socket sock("localhost", port);
@@ -29,11 +30,13 @@ int Message::test_catch(short port)
     return 0;
 }
 
+//basic test case used by all classes
+//  receives a message then sends it to cout
 int Message::test(Socket &sock)
 {
     Message *m = sock.getMessage();
     if(m != NULL) {
-        cout << m; //shoul throw() if not a child class...
+        cout << m; //should throw() if not a child class...
     }
     else {
         cerr << "getMessage() failed" << endl;
@@ -42,6 +45,8 @@ int Message::test(Socket &sock)
     return 0;
 }
 
+//uses the child class's serialize() funtion to output a human readble
+//representations of the message
 ostream& operator<< (ostream& out, const Message *m)
 {
     out << m->serialize(true);
@@ -56,28 +61,31 @@ LSA::LSA()
 LSA::LSA(int argc, char ** argv)
     : Message("LSA")
 {
-    if(string_to_int(argv[1], AS) == NULL)
-        router_usage("First argument must be an integer");
+    try { AS = boost::lexical_cast<uint32_t>(argv[1]); }
+    catch ( ... ) { router_usage("First argument must be an integer"); }
 
-    if(!valid_AS(AS))
+    if(AS < 0 || AS > 9)
         router_usage("AS # must be between 0 and 9 and must match a configured AS");
 
-    if(string_to_int(argv[2], routerID) == NULL)
-        router_usage("Second argument must be an integer");
-    if(!valid_router(routerID))
+    try { routerID = boost::lexical_cast<uint32_t>(argv[2]); }
+    catch ( ... ) { router_usage("Second argument must be an integer"); }
+
+    if(routerID < 0 || routerID > 9)
         router_usage("routerID # must be between 0 and 9");
 
-    if(string_to_int(argv[4], neighborAS) == NULL)
-        router_usage("Fourth argument must be an integer");
+    try { neighborAS = boost::lexical_cast<uint32_t>(argv[4]); }
+    catch ( ... ) { router_usage("Fourth argument must be an integer"); }
 
-    if(string_to_int(argv[5], neighborRouterID) == NULL)
-        router_usage("Fifth argument must be an integer");
+    try { neighborRouterID = boost::lexical_cast<uint32_t>(argv[5]); }
+    catch ( ... ) { router_usage("Fifth argument must be an integer"); }
 
     for(int32_t i=6; i < argc; i ++)
     {
         uint32_t tmp;
-        if(string_to_int(argv[i], tmp) == NULL)
-            router_usage("net argmenst must be integers");
+
+        try { tmp = boost::lexical_cast<uint32_t>(argv[i]); }
+        catch ( ... ) { router_usage("net arguments must be integer"); }
+
         if(tmp > 99)
             router_usage("networks must be less than 99");
         if( linkStates.find(tmp) != linkStates.end() )
