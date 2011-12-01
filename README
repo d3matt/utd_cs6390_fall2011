@@ -1,7 +1,7 @@
 compile steps (on cs1, cs2, etc)
     make
 
-if you've got pexpect installed, try:
+to run our unit tests (on a linux box)
     make tests
 
 
@@ -16,4 +16,14 @@ The socket class has two functions related to messages:
  * getMessage() - splits the incoming text by whitespace and call the correct
 constructor; returns null if the message type of the incoming message is unkown
 
-Note: the first field of a serialized message is always the type of the message
+the first field of a serialized message is always the type of the message
+
+
+
+Notes on unit tests:
+    we used the python-pexpect module to start PCE and router sessions and interact with them.
+we included the pexpect-2.3.tar.gz tarball from http://pexpect.sourceforge.net/pexpect-2.3.tar.gz
+so that anyone with a UNIX-like system and python could run "make tests"
+
+the Message_test application uses a modified echoserv from:
+http://www.paulgriffiths.net/program/c/srcs/echoserv.tar.gz

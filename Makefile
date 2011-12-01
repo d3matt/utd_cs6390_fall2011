@@ -2,30 +2,16 @@ CC=gcc
 CXX=g++
 LD=$(CXX)
 CFLAGS=-Wall -g -fexceptions -O2 -fno-guess-branch-probability
-#uncomment to enable debug messages
+#uncomment to enable extra debug messages
 #CFLAGS+=-DPROJ_DEBUG
 LDFLAGS=-lpthread
 
+#used for unit tests
 export PYTHONPATH := $(PWD)/pexpect-2.3
 
+#pretty printing of CXX and LD
 ifeq ($(HIDE),)
 HIDE:= @
-endif
-
-ifeq ($(shell uname -m),x86_64)
-LIBDIR:=lib64
-else
-LIBDIR:=lib
-endif
-
-BOOSTFLAGS=
-ifeq ($(shell uname -s),Linux)
-BOOSTFLAGS=-Wl,--start-group /usr/$(LIBDIR)/libboost_serialization.a -Wl,--end-group
-endif
-
-ifeq ($(shell uname -s),CYGWIN_NT-5.1)
-BOOSTFLAGS=--start-group /usr/$(LIBDIR)/libboost_*.a --end-group
-CFLAGS += -D__CYGWIN__
 endif
 
 BINLIST=echoserv Message_test router PCE
@@ -34,20 +20,14 @@ COMMON_OBJECTS=PCEconfig.o Socket.o usage.o Message.o
 
 default: $(BINLIST)
 
+# default compile rule
 .cpp.o:
 	@ mkdir -p .depend
 	@ echo CXX $@
 	$(HIDE) $(CXX) $(CFLAGS) -c -o $@ -MMD -MF $(@:%.o=.depend/%.d) $(firstword $^)
 
-.c.o:
-	@ mkdir -p .depend
-	@ echo CC $@
-	$(HIDE) $(CC) $(CFLAGS) -c -o $@ -MMD -MF $(@:%.o=.depend/%.d) $(firstword $^)
-
-
-main: main.o
-	@ echo LD $@
-	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
+#include generated dependency files
+-include .depend/*.d
 
 echoserv: echoserv.o
 	@ echo LD $@
@@ -70,22 +50,24 @@ clean:
 
 distclean: clean
 	rm -rf .depend
-	rm -rf project
+	rm -rf mjs010200
+	rm -rf pexpect-2.3.tar.gz
 	rm -rf .log
 
 dist:
-	rm -rf project project.zip
+	rm -rf mjs010200 mjs010200.zip
 	mkdir -p project
-	cp *.cpp *.h README Makefile project
-	zip project.zip project/*
+	cp *.cpp *.h *.py README Makefile pexpect-2.3.tar.gz mjs010200/
+	zip mjs010200.zip mjs010200/*
 
+# from here down is unit test rules
 message_unit_test: echoserv Message_test pexpect-2.3/.mkdir
 	$(HIDE) mkdir -p .log
 	$(HIDE) echo -n "Running message_test.py..."
 	$(HIDE) python message_test.py > .log/message_test.log
 	$(HIDE) echo "PASS"
 
-single_pce_test: PCE router
+single_pce_test: PCE router pexpect-2.3/.mkdir
 	$(HIDE) mkdir -p .log
 	$(HIDE) echo -n "Running single_pce_test.py..."
 	$(HIDE) python single_pce_test.py > .log/single_pce_test.log
@@ -107,6 +89,4 @@ pexpect-2.3/.mkdir: pexpect-2.3.tar.gz
 	tar -xf pexpect-2.3.tar.gz
 	touch pexpect-2.3/.mkdir
 
-tests: message_unit_test single_pce_test multi_pce_test star_pce_test pexpect-2.3/.mkdir
-
--include .depend/*.d
+tests: message_unit_test single_pce_test multi_pce_test star_pce_test
