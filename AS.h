@@ -28,6 +28,7 @@ public:
 
     AS():ASno(99),portno(0) {}
 
+    //Construtor takes an AS number, hostname, portno, and whether to lookup the hostname
     AS(uint32_t ASno, std::string hostname, uint16_t portno, bool lookup=true):
     ASno(ASno),
     hostname(hostname),
@@ -36,7 +37,7 @@ public:
         if(ASno > 9) {
             throw ASexception("invalid AS number");
         }
-
+        //lookup the hostname
         if(lookup) {
             struct hostent * he;
             he = gethostbyname( hostname.c_str() );
