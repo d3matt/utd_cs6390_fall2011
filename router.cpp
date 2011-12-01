@@ -19,6 +19,7 @@
 using namespace std;
 using namespace cs6390;
 
+//print the help message for the UI
 void ui_help()
 {
     cout<< "Enter one of the following commands: " << endl
@@ -30,6 +31,7 @@ void ui_help()
 
 bool stopping=false;
 
+//catch signales (ctrl-c...)
 void signal_death( int sig, siginfo_t *info, void *ctxt )
 {
     cout << "Shutting down" << endl;
@@ -39,6 +41,7 @@ void signal_death( int sig, siginfo_t *info, void *ctxt )
 
 int main(int argc, char ** argv)
 {
+    //parse command line
     if(argc == 1)
         router_usage(NULL, true, 0);
     else if(argc < 7)
@@ -52,8 +55,8 @@ int main(int argc, char ** argv)
 
     cout << &localStatus;
 
+    //get AS object
     AS myAS=pConfig.getAS(localStatus);
-
 
     Socket * s = NULL;
     for (uint32_t i=0; i != 1 ;) {
@@ -64,6 +67,7 @@ int main(int argc, char ** argv)
         }
         catch( Socket::SocketException &e)
         {
+            //Timeout of socket fails to connect
             cout << " (timeout)" << endl;
             sleep(1);
             continue;
@@ -74,7 +78,7 @@ int main(int argc, char ** argv)
     s->sendMessage(localStatus);
     cout << "done" << endl;
     delete s;
-
+    //Make a new scope to delete action when done
     {
         struct sigaction action;
         action.sa_flags     = SA_SIGINFO | SA_RESTART;
@@ -104,6 +108,7 @@ int main(int argc, char ** argv)
         boost::to_upper(v[0]);
     
         //ignore extra args...
+        //Send a RREQ message
         if(v[0] == "RT") {
             try {
                 arg = boost::lexical_cast<uint32_t>(v[1]);
@@ -139,6 +144,7 @@ int main(int argc, char ** argv)
                 cerr << "Failed!" << endl;
             }
         }
+        //Change metric to 99 for a specific net
         else if(v[0] == "DN") {
             try {
                 arg = boost::lexical_cast<uint32_t>(v[1]);
@@ -161,12 +167,13 @@ int main(int argc, char ** argv)
                 continue;
             }
         }
+        //Set metric to 1 for a given net
         else if(v[0] == "UP") {
             try {
                 arg = boost::lexical_cast<uint32_t>(v[1]);
             }
             catch ( ... ) {
-                cout << "argument to DN must be integer" << endl;
+                cout << "argument to UP must be integer" << endl;
                 continue;
             }
             int rc;
@@ -182,12 +189,15 @@ int main(int argc, char ** argv)
                 continue;
             }
         }
+        //Print link status
         else if(v[0] == "LI") {
             cout << &localStatus;
         }
+        //Exit
         else if(v[0] == "EXIT") {
             break;
         }
+        //Print UI help
         else if(v[0] == "HELP" || v[0] == "?") {
             ui_help();
         }
@@ -200,6 +210,7 @@ int main(int argc, char ** argv)
         }
     }
 
+    //When disconnecting, send a down status to my PCE
     cout << endl << "Sending down status for all our links ... " << flush;
     localStatus.setLinkMetric(99);
     {
