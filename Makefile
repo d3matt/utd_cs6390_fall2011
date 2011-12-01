@@ -51,7 +51,7 @@ clean:
 distclean: clean
 	rm -rf .depend
 	rm -rf mjs010200
-	rm -rf pexpect-2.3.tar.gz
+	rm -rf pexpect-2.3
 	rm -rf .log
 
 dist:
