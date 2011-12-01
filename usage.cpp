@@ -8,6 +8,7 @@
 
 using namespace std;
 
+//Print out a common usage message
 static void usage_common(const char * errmsg, string usage, bool exit, int rc)
 {
     if(errmsg)
@@ -19,6 +20,7 @@ static void usage_common(const char * errmsg, string usage, bool exit, int rc)
         _exit(rc);
 }
 
+//Print out a message on how to call router
 void router_usage(const char * errmsg, bool exit, int rc)
 {
     stringstream s;
@@ -32,6 +34,7 @@ void router_usage(const char * errmsg, bool exit, int rc)
     usage_common(errmsg, s.str(), exit, rc);
 }
 
+//Print out a message on how to call the PCE
 void PCE_usage(const char * errmsg, bool exit, int rc)
 {
     stringstream s;
@@ -40,3 +43,4 @@ void PCE_usage(const char * errmsg, bool exit, int rc)
     s << "configfile: file containing hostname and port number information for PCEs" << endl;
     usage_common(errmsg, s.str(), exit, rc);
 }
+

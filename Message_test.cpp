@@ -27,6 +27,7 @@ int main(int argc, char ** argv)
     int rc, retval=0;
     funcList flist;
 
+    //List of function pointers
     flist.push_back( make_pair("MESSAGE", &Message::test_catch) );
     flist.push_back( make_pair("LSA",     &LSA::test) );
     flist.push_back( make_pair("RREQ",    &RREQ::test) );
@@ -40,6 +41,7 @@ int main(int argc, char ** argv)
         cout << DASH << endl;
         cout << "    Begin " << it->first << " test" << endl;
         cout << DNAR << endl;
+        //Call each pointer
         rc=it->second(port);
         cout << UPAR << endl;
 
