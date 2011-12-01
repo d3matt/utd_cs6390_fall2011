@@ -13,6 +13,7 @@
 namespace cs6390
 {
 
+//constructor to read a file a store the config data
 PCEconfig::PCEconfig(const char* filename)
 : filename(filename)
 {
@@ -31,6 +32,7 @@ PCEconfig::PCEconfig(const char* filename)
         if(!infile.good())
             break;
         vector<string> v;
+        //splits a line on whitespace
         boost::split(v, line, boost::is_any_of(" \t"), boost::algorithm::token_compress_on );
         if(v.size() != 3) {
             stringstream s;
@@ -39,11 +41,13 @@ PCEconfig::PCEconfig(const char* filename)
         }
 
         try {
+            //Make a new AS
             tmp=AS( boost::lexical_cast<uint32_t>(v[0]), 
                     v[1], 
                     boost::lexical_cast<uint32_t>(v[2]) );
         }
         catch( AS::ASexception& e ) {
+            //It was bad, print errors
             stringstream s;
             s << "Bad AS (" << e.s << ") at line: " << lno << endl;
             throw PCEexception(s.str());
@@ -55,6 +59,7 @@ PCEconfig::PCEconfig(const char* filename)
         }
 
         if ( ASmap.find(tmp.ASno) != ASmap.end() ) {
+            //We already have this AS configured
             stringstream s;
             s << "Duplicate entries detected in configfile at line: " << lno;
             throw PCEexception(s.str());
@@ -64,6 +69,7 @@ PCEconfig::PCEconfig(const char* filename)
     infile.close();
 }
 
+//Fucntion to print out PCEconfig
 ostream& operator<< (ostream& out, const PCEconfig &c)
 {
     out << "PCEconfig (" << c.filename << "): " << endl;
@@ -76,6 +82,7 @@ ostream& operator<< (ostream& out, const PCEconfig &c)
     return out;
 }
 
+//Return AS object based on ASno
 AS PCEconfig::getAS(const uint32_t ASno)
 {
     map<uint32_t,AS>::iterator it = ASmap.find(ASno);

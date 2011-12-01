@@ -16,6 +16,7 @@ using namespace std;
 namespace cs6390
 {
 
+//Class that reads the config and stors the AS data
 class PCEconfig
 {
 private:
@@ -25,6 +26,7 @@ public:
     PCEconfig(const char * filename);
     friend ostream& operator<< (ostream& out, const PCEconfig& c);
     
+    //An exception type to facilitate throws
     struct PCEexception: public easyException {
         PCEexception(std::string s) : easyException(s) {}
         } ;
