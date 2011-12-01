@@ -57,6 +57,11 @@ class LSA : public Message
 {
 private:
     //used a map to make lookups fast
+    //access to complex data structure is through controlled methods:
+    //  addLink
+    //  setLinkMetric
+    //
+    //getLinkMap is used in PCE to iterate over entries
     LinkMap         linkStates;
 public:
     uint32_t        AS;
@@ -75,9 +80,11 @@ public:
 
     LinkMap        *getLinkMap() {return &linkStates;}
 
-    //for send/recv
+    //serialization/deserialization
                     LSA(vector<string> &v);
     string          serialize(bool readable=false) const;
+
+    //basisc LSA unit test
     static int test(short port);
 };
 
@@ -88,9 +95,12 @@ public:
     uint32_t    dest;
                 RREQ(int32_t source=0xff, int32_t dest=0xff) :
                     Message("RREQ"), source(source), dest(dest) {}
+
+    //serialization/deserialization
                 RREQ(vector<string> &v);
     string      serialize(bool readable=false) const;
 
+    //basic RREQ unit test
     static int  test(short port);
 };
 
@@ -102,9 +112,12 @@ public:
     vector<uint32_t> nets;
 
             BGP() : Message("BGP"), AS(0xff), AS_hops(0xff) {}
+
+    //serialization/deserialization
             BGP(vector<string> &v);
     string  serialize(bool readable=false) const;
 
+    //basic BPG unit test
     static int test(short port);
 };
 

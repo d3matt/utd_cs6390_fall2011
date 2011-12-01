@@ -94,6 +94,7 @@ LSA::LSA(int argc, char ** argv)
     }
 }
 
+//add a link to linkStates
 int LSA::addLink(uint32_t net, uint32_t metric)
 {
     if ( linkStates.find(net) != linkStates.end() )
@@ -120,15 +121,18 @@ int LSA::setLinkMetric(uint32_t metric)
     return 0;
 }
 
+//constructor from a string of vectors
 LSA::LSA(vector<string> &v)
 {
-    if(v.size() < 4) 
+    if(v.size() < 4)                                //check for number of parameters
         THROW_DES("too few parameters for LSA");
-    else if(v.size() % 2 != 0)
+    else if(v.size() % 2 != 0)                      //LSA will always have odd number of members
         THROW_DES("odd number of parameters");
     type = v[0];
-    if(type != "LSA")
+    if(type != "LSA")                               //check type
         THROW_DES("wrong message type");
+
+    //convert numeric types
     routerID = boost::lexical_cast<uint32_t>(v[1]);
     neighborAS = boost::lexical_cast<uint32_t>(v[2]);
     neighborRouterID = boost::lexical_cast<uint32_t>(v[3]);
@@ -139,6 +143,7 @@ LSA::LSA(vector<string> &v)
     }
 }
 
+//serialize LSA (either for sending or in human readable form)
 string LSA::serialize(bool readable) const
 {
     stringstream ss;
@@ -161,18 +166,30 @@ string LSA::serialize(bool readable) const
     return ss.str();
 }
 
+//used in Message_test.cpp
+//  sends a simple LSA then receives it back
+//  requires a simple echo server listening on <port>
 int LSA::test(short port)
 {
     Socket sock("localhost", port);
     {
-        LSA out;
+        //use default constructor
+        LSA out;            
+
+        //add a couple of links
         out.addLink(1,1);
         out.addLink(5,1);
         out.addLink(9,99);
+
+        //send the message
         sock.sendMessage(out);
     }
     return Message::test(sock);
 }
+
+
+//every other message type has similar member functions...
+//not going to comment each one...
 
 RREQ::RREQ(vector<string> &v)
 {
