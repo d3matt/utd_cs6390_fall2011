@@ -7,7 +7,6 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include "utils.h"
 #include "PCEconfig.h"
 
 namespace cs6390

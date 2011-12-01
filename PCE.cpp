@@ -21,10 +21,21 @@ extern "C"
 #include "PCEconfig.h"
 #include "Message.h"
 #include "Socket.h"
-#include "utils.h"
 
 using namespace std;
 using namespace cs6390;
+
+//simple class meant to be used as a stack variable.
+//  constructor locks the mutex
+//  destructor unlocks the mutex
+class MutexLocker
+{
+private:
+    pthread_mutex_t *mutex;
+public:
+    MutexLocker(pthread_mutex_t *inMutex) : mutex(inMutex) {pthread_mutex_lock(mutex);}
+    ~MutexLocker() {pthread_mutex_unlock(mutex);}
+};
 
 typedef pair<uint32_t, uint32_t> Edge;
 

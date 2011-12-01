@@ -13,10 +13,8 @@
 
 #include "PCEconfig.h"
 #include "Message.h"
-#include "utils.h"
 #include "usage.h"
 #include "Socket.h"
-#include "utils.h"
 
 using namespace std;
 using namespace cs6390;
