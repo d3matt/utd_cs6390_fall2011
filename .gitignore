@@ -14,3 +14,4 @@ PCE
 core
 core.*
 .log
+pexpect-2.3

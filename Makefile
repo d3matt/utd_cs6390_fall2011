@@ -6,6 +6,8 @@ CFLAGS=-Wall -g -fexceptions -O2 -fno-guess-branch-probability
 #CFLAGS+=-DPROJ_DEBUG
 LDFLAGS=-lpthread
 
+export PYTHONPATH := $(PWD)/pexpect-2.3
+
 ifeq ($(HIDE),)
 HIDE:= @
 endif
@@ -77,7 +79,7 @@ dist:
 	cp *.cpp *.h README Makefile project
 	zip project.zip project/*
 
-message_unit_test: echoserv Message_test
+message_unit_test: echoserv Message_test pexpect-2.3/.mkdir
 	$(HIDE) mkdir -p .log
 	$(HIDE) echo -n "Running message_test.py..."
 	$(HIDE) python message_test.py > .log/message_test.log
@@ -101,6 +103,10 @@ star_pce_test: multi_pce_test
 	$(HIDE) python star_pce_test.py > .log/star_pce_test.log
 	$(HIDE) echo "PASS"
 
-tests: message_unit_test single_pce_test multi_pce_test star_pce_test
+pexpect-2.3/.mkdir: pexpect-2.3.tar.gz
+	tar -xf pexpect-2.3.tar.gz
+	touch pexpect-2.3/.mkdir
+
+tests: message_unit_test single_pce_test multi_pce_test star_pce_test pexpect-2.3/.mkdir
 
 -include .depend/*.d
