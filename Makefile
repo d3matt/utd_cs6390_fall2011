@@ -53,15 +53,15 @@ echoserv: echoserv.o
 
 Message_test: Message_test.o $(COMMON_OBJECTS)
 	@ echo LD $@
-	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
 router: router.o $(COMMON_OBJECTS)
 	@ echo LD $@
-	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
 PCE: PCE.o $(COMMON_OBJECTS)
 	@ echo LD $@
-	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^ $(BOOSTFLAGS)
+	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
 clean:
 	rm -f *.map *.o $(BINLIST) core.* *.exe.stackdump

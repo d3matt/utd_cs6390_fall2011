@@ -29,12 +29,14 @@ extern "C"
 namespace cs6390
 {
 
+//copy constructor
 Socket::Socket(const Socket &copy)
 {
     this->connected=copy.connected;
     this->sockFD=copy.sockFD;
 }
 
+//constructor from host:port
 Socket::Socket(string host, uint16_t port) :
     connected(false), sockFD(-1)
 {
@@ -55,6 +57,8 @@ Socket::Socket(string host, uint16_t port) :
         connectFD(&saddr);;
     }
 }
+
+//constructor with struct sockaddr
 Socket::Socket(struct sockaddr *saddr) : connected(false), sockFD(-1) {
     connectFD(saddr);
 }
@@ -67,6 +71,8 @@ Socket::~Socket()
     }
 }
 
+//open the socket
+//  throw on failure
 void Socket::createFD(void)
 {
     if(sockFD != -1)
@@ -76,6 +82,8 @@ void Socket::createFD(void)
     }
 }
 
+//connect the socket
+//  thrown on failure
 void Socket::connectFD(struct sockaddr * saddr)
 {
     if(connected)
@@ -91,6 +99,7 @@ void Socket::connectFD(struct sockaddr * saddr)
     connected = true;
 }
 
+//send current contents of myBuf to peer
 int Socket::output()
 {
     //don't forget to add 1 for \0
@@ -117,6 +126,7 @@ int Socket::output()
     return retVal;
 }
 
+//receive from peer into myBuf
 int Socket::input()
 {
     char buffer[4096];
@@ -147,23 +157,29 @@ int Socket::input()
     return retVal;
 }
 
+//send a message
 int Socket::sendMessage(Message &m)
 {
     myBuf.str( m.serialize() );
     return output();
 }
 
+//receive and deserialize message
+//  pointer must be freed
 Message * Socket::getMessage()
 {
     Message * m = NULL;
-
 
     if(input() <= 0)
         return NULL;
 
     vector<string> v;
     string save(myBuf.str());
+
+    //much prettier than strtok, right?
     boost::split(v, save, boost::is_any_of(" \t\r\n"), boost::algorithm::token_compress_on );
+
+    //not an easier way to do this...  (boost::serialization could do it implicitly)
     if(v[0] == "LSA")
         m = new LSA(v);
     else if(v[0] == "RREQ")
@@ -182,6 +198,7 @@ Message * Socket::getMessage()
     return m;
 }
 
+//open a listen socket on the specified port
 ListenSocket::ListenSocket(uint16_t port)
 {
     struct sockaddr_in  servaddr;
@@ -220,6 +237,8 @@ ListenSocket::~ListenSocket()
     }
 }
 
+//accept an income TCP connection
+//  blocking
 Socket ListenSocket::acceptConnection()
 {
     int newFD;
