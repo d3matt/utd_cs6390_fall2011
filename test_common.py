@@ -1,6 +1,6 @@
 """function common to PCE unit tests"""
 
-import pexpect
+import pexpect, time
 
 def check_routes(pspawn, exp):
     """parses the pexpect.spawn object looking for 'Result:'
