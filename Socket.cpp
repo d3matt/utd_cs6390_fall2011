@@ -97,11 +97,13 @@ void Socket::connectFD(struct sockaddr * saddr)
     //retry 5 times...
     for(uint32_t i=0; i < 5; i++) {
         if( connect( sockFD, saddr, sizeof(sockaddr)) < 0) {
+/*
             sockaddr_in *sin = (sockaddr_in *) saddr;
             printf("%d %x %s\n", ntohs( sin -> sin_port),
                     sin->sin_family,
                     inet_ntoa(sin->sin_addr)
                     );
+*/
             perror("connect()");
         }
         else {
