@@ -445,7 +445,7 @@ void MessageResponder::recvRREQ()
 
 			//Shortest path from current router to dest router in AS
             res = localDijkstra(source, (myRouter + ((ASno+1)*100)), true);
-            if(!res.routers.empty())
+            if(myRouter == source || !res.routers.empty())
             {
                 for(list<ASroute>::iterator iter = m.ASlist.begin(); iter != m.ASlist.end(); ++iter) {
                     res.routers.insert(res.routers.end(), iter->second.begin(), iter->second.end());
