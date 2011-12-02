@@ -48,6 +48,7 @@ class spawnwrapper(object):
         self.shell.terminate()
         self.shell.read()
     def sendline(self, line):
+        time.sleep(1)
         return self.shell.sendline(line)
     def expect(self, exp):
         return self.shell.expect(exp)
