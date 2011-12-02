@@ -10,15 +10,19 @@ if __name__ == "__main__":
         os.mkdir(".log")
     print "Spawning PCE 0"
     PCE0=spawnwrapper("./PCE 0 local.cfg", ".log/PCE0.log")
+    PCE0.expect("SOCKET OPENED")
 
     print "Spawning PCE 1"
     PCE1=spawnwrapper("./PCE 1 local.cfg", ".log/PCE1.log")
+    PCE1.expect("SOCKET OPENED")
 
     print "Spawning PCE 2"
     PCE2=spawnwrapper("./PCE 2 local.cfg", ".log/PCE2.log")
+    PCE2.expect("SOCKET OPENED")
 
     print "Spawning PCE 3"
     PCE3=spawnwrapper("./PCE 3 local.cfg", ".log/PCE3.log")
+    PCE0.expect("SOCKET OPENED")
 
     time.sleep(1)
 
