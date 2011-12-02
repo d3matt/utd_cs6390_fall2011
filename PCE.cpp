@@ -220,7 +220,7 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode, bool 
     RRES resp;
 
     {
-        MutexLocker graphLock(&graphMutex);
+        //MutexLocker graphLock(&graphMutex);
 
         numEdges = edges.size();
         numNodes = nodes.size();
@@ -282,11 +282,11 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode, bool 
 void MessageResponder::recvLSA()
 {
     auto_ptr<LSA> r(dynamic_cast<LSA *> (in));
+
     cout << r.get();
     uint32_t id = r->routerID;
     uint32_t neighbor = r->neighborAS;
 
-    MutexLocker lock(&graphMutex);
 
     //update connected_AS map
     if(neighbor != 99) {
@@ -570,6 +570,7 @@ void MessageResponder::recvIRRS()
 //Receive any message and call processor
 void MessageResponder::recv()
 {
+    MutexLocker mutex(&graphMutex);
     string type = in->getType();
 
     if(type == "LSA")
