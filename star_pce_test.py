@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     print "Spawning PCE 3"
     PCE3=spawnwrapper("./PCE 3 local.cfg", ".log/PCE3.log")
-    PCE0.expect("SOCKET OPENED")
+    PCE3.expect("SOCKET OPENED")
 
     time.sleep(1)
 
