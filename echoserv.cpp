@@ -7,6 +7,10 @@
   
   Simple TCP/IP echo server.
 
+    Modifications by Matthew Stoltenberg and James Hall:
+        * apply SO_REUSEADDR
+        * send and receive lines instead of just bytes
+
 */
 
 
