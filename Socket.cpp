@@ -18,6 +18,8 @@ extern "C"
 #   include <sys/socket.h>
 #   include <netinet/in.h>
 #   include <netdb.h>
+#   include <arpa/inet.h>
+
 
 #   include <errno.h>
 #   include <string.h>
@@ -92,11 +94,24 @@ void Socket::connectFD(struct sockaddr * saddr)
         createFD();
     }
 
-    if( connect( sockFD, saddr, sizeof(sockaddr)) < 0) {
-        THROW_SE("Failed to connect to socket");
+    //retry 5 times...
+    for(uint32_t i=0; i < 5; i++) {
+        if( connect( sockFD, saddr, sizeof(sockaddr)) < 0) {
+            sockaddr_in *sin = (sockaddr_in *) saddr;
+            printf("%d %x %s\n", ntohs( sin -> sin_port),
+                    sin->sin_family,
+                    inet_ntoa(sin->sin_addr)
+                    );
+            perror("connect()");
+        }
+        else {
+            connected = true;
+            break;
+        }
+        sleep(1);
     }
-
-    connected = true;
+    if (!connected)
+        THROW_SE("Failed to connect to socket");
 }
 
 //send current contents of myBuf to peer
@@ -221,7 +236,7 @@ ListenSocket::ListenSocket(uint16_t port)
         close(sockFD);
         THROW_SE("Failed to bind socket");
     }
-    if( listen(sockFD, 5) < 0 )
+    if( listen(sockFD, 20) < 0 )
     {
         close(sockFD);
         THROW_SE("Failed to listen on socket");
@@ -230,6 +245,7 @@ ListenSocket::ListenSocket(uint16_t port)
 
 ListenSocket::~ListenSocket()
 {
+    cout << "~ListenSocket()" << endl;
     if(connected)
     {
         close(sockFD);
@@ -245,6 +261,8 @@ Socket ListenSocket::acceptConnection()
     struct sockaddr addr;
     socklen_t len = 0;
     newFD = accept(sockFD, &addr, &len);
+    if(newFD < 0)
+        perror("accept()");
     Socket s(newFD);
     return s;
 }

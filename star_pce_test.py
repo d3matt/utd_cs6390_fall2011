@@ -70,6 +70,7 @@ if __name__ == "__main__":
     rt32=spawnwrapper("./router 3 2 local.cfg  2 1 31 32", ".log/rt22.log" )
     rt32.expect(">>>")
 
+    time.sleep(1)
 
     print "Trying RT 22 at router 0 1"
     rt01.sendline("RT 22")

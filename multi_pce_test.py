@@ -20,7 +20,7 @@ if __name__ == "__main__":
     print "Spawning PCE 3"
     PCE3=spawnwrapper("./PCE 3 local.cfg", ".log/PCE3.log")
 
-    time.sleep(1)
+    time.sleep(2)
 
     print "Spawning router 0-0 (nets 0 1 2 )"
     rt00=spawnwrapper("./router 0 0 local.cfg 3 0 0 1 2", ".log/rt00.log" )
@@ -78,26 +78,28 @@ if __name__ == "__main__":
     rt31=spawnwrapper("./router 3 1 local.cfg 99 99 32 33 34", ".log/rt31.log" )
     rt31.expect(">>>")
 
-    print "Trying RT 10 at router 3"
+    time.sleep(2)
+
+    print "Trying RT 10 at router 0-3"
     rt03.sendline("RT 10")
     rt03.expect(">>>")
 
     RC = 0
     RC |= check_routes(rt03.shell, "0")
 
-    print "Trying RT 18 at router 3"
+    print "Trying RT 18 at router 0-3"
     rt03.sendline("RT 18")
     rt03.expect(">>>")
 
     RC |= check_routes(rt03.shell, "0 1 2 3")
 
-    print "Trying RT 18 at router 0"
+    print "Trying RT 18 at router 0-0"
     rt00.sendline("RT 18")
     rt00.expect(">>>")
 
     RC |= check_routes(rt00.shell, "1 2 3 0 1 2 3")
     
-    print "Trying RT 28 at router 0"
+    print "Trying RT 28 at router 0-0"
     rt00.sendline("RT 28")
     rt00.expect(">>>")
 
@@ -107,7 +109,7 @@ if __name__ == "__main__":
     rt13.sendline("DN 16")
     rt13.expect(">>>")
 
-    print "Trying RT 18 at router 0 after link DOWN"
+    print "Trying RT 18 at router 0-0 after link DOWN"
     rt00.sendline("RT 18")
     rt00.expect(">>>")
 
@@ -117,7 +119,9 @@ if __name__ == "__main__":
     rt13.sendline("UP 16")
     rt13.expect(">>>")
 
-    print "Trying RT 28 at router 3 1"
+    time.sleep(2)
+
+    print "Trying RT 28 at router 3-1"
     rt31.sendline("RT 28")
     rt31.expect(">>>")
 
