@@ -28,3 +28,13 @@ so that anyone with a UNIX-like system and python could run "make tests"
 the Message_test application uses a modified echoserv from:
 http://www.paulgriffiths.net/program/c/srcs/echoserv.tar.gz
 
+These files are strictly for our unit tests:
+    echoserv.cpp
+    local.cfg
+    Message_test.cpp
+    pexpect-2.3.tar.gz
+    message_test.py
+    multi_pce_test.py
+    single_pce_test.py
+    star_pce_test.py
+    test_common.py

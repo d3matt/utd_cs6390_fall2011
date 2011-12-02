@@ -46,18 +46,18 @@ PCE: PCE.o $(COMMON_OBJECTS)
 	$(HIDE) $(LD) $(LDFLAGS) -o $@ $^
 
 clean:
-	rm -f *.map *.o $(BINLIST) core.* *.exe.stackdump
+	rm -f *.map *.o $(BINLIST) core.* *.exe.stackdump *.pyc
 
 distclean: clean
 	rm -rf .depend
-	rm -rf mjs010200
+	rm -rf mjs010200 mjs010200.zip
 	rm -rf pexpect-2.3
 	rm -rf .log
 
 dist:
 	rm -rf mjs010200 mjs010200.zip
-	mkdir -p project
-	cp *.cpp *.h *.py README Makefile pexpect-2.3.tar.gz mjs010200/
+	mkdir -p mjs010200
+	cp *.cpp *.h *.py README Makefile pexpect-2.3.tar.gz local.cfg mjs010200/
 	zip mjs010200.zip mjs010200/*
 
 # from here down is unit test rules
@@ -86,7 +86,7 @@ star_pce_test: multi_pce_test
 	$(HIDE) echo "PASS"
 
 pexpect-2.3/.mkdir: pexpect-2.3.tar.gz
-	tar -xf pexpect-2.3.tar.gz
+	tar -xzf pexpect-2.3.tar.gz
 	touch pexpect-2.3/.mkdir
 
 tests: message_unit_test single_pce_test multi_pce_test star_pce_test
