@@ -45,7 +45,7 @@ class spawnwrapper(object):
     def __init__(self, script, logfile):
         self.shell = pexpect.spawn(script, logfile=open(logfile, 'w') )
     def __del__(self):
-        self.shell.terminate()
+        self.shell.terminate(force=True)
         self.shell.read()
     def sendline(self, line):
         time.sleep(1)
