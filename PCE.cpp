@@ -646,6 +646,8 @@ int main(int argc, char ** argv)
 
     ListenSocket sock(me.portno);
 
+    cout << "SOCKET OPENED" << endl;
+
     pthread_mutex_init(&graphMutex, NULL);
     
     vector<RecvThreadId*> threadIds;
