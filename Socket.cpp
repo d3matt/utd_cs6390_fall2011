@@ -61,8 +61,8 @@ Socket::Socket(string host, uint16_t port) :
 }
 
 //constructor with struct sockaddr
-Socket::Socket(struct sockaddr *saddr) : connected(false), sockFD(-1) {
-    connectFD(saddr);
+Socket::Socket(struct sockaddr *saddr, uint32_t retries) : connected(false), sockFD(-1) {
+    connectFD(saddr, retries);
 }
 
 Socket::~Socket()
@@ -86,7 +86,7 @@ void Socket::createFD(void)
 
 //connect the socket
 //  thrown on failure
-void Socket::connectFD(struct sockaddr * saddr)
+void Socket::connectFD(struct sockaddr * saddr, uint32_t retries) //default to retry 4 times
 {
     if(connected)
         THROW_SE("already connected");
@@ -94,8 +94,8 @@ void Socket::connectFD(struct sockaddr * saddr)
         createFD();
     }
 
-    //retry 5 times...
-    for(uint32_t i=0; i < 5; i++) {
+    //retry <retries> times...
+    for(uint32_t i=0; i <= retries; i++) {
         if( connect( sockFD, saddr, sizeof(sockaddr)) < 0) {
 /*
             sockaddr_in *sin = (sockaddr_in *) saddr;
@@ -110,7 +110,8 @@ void Socket::connectFD(struct sockaddr * saddr)
             connected = true;
             break;
         }
-        sleep(1);
+        if(retries>0)   //only sleep if we're going around again
+            sleep(1);
     }
     if (!connected)
         THROW_SE("Failed to connect to socket");

@@ -31,9 +31,12 @@ void ui_help()
 
 bool stopping=false;
 
-//catch signales (ctrl-c...)
+//catch signals (ctrl-c...)
 void signal_death( int sig, siginfo_t *info, void *ctxt )
 {
+    //if we're stopping, die hard on ctrl-c
+    if(stopping)
+        kill(getpid(), SIGKILL);
     cout << "Shutting down" << endl;
     stopping=true;
     close(0); //close stdin so getline() will return
@@ -210,14 +213,20 @@ int main(int argc, char ** argv)
         }
     }
 
-    //When disconnecting, send a down status to my PCE
-    cout << endl << "Sending down status for all our links ... " << flush;
+    //When disconnecting, try to send a down status to my PCE
+    cout << endl << "Trying to send down status for all our links ... " << flush;
     localStatus.setLinkMetric(99);
+
+    try
     {
-        Socket s(&myAS.saddr);
+        Socket s(&myAS.saddr,0);
         s.sendMessage(localStatus);
+        cout << "done!" << endl;
     }
-    cout << "done!" << endl;
+    catch ( ... ) {
+        cout << "failed! (oh well)" << endl;
+    }
+
 
     return 0;
 }
