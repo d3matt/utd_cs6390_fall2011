@@ -14,7 +14,7 @@ base Message class. Each message class has two common function:
 The socket class has two functions related to messages:
  * sendMessage() - calls serialize and sends the string over the socket
  * getMessage() - splits the incoming text by whitespace and call the correct
-constructor; returns null if the message type of the incoming message is unkown
+constructor; returns null if the message type of the incoming message is unknown
 
 the first field of a serialized message is always the type of the message
 
