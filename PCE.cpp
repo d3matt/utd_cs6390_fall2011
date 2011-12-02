@@ -443,8 +443,10 @@ void MessageResponder::recvRREQ()
 
             }
 
+            myRouter = myRouter + ((ASno+1)*100);
+
 			//Shortest path from current router to dest router in AS
-            res = localDijkstra(source, (myRouter + ((ASno+1)*100)), true);
+            res = localDijkstra(source, myRouter, true);
             if(myRouter == source || !res.routers.empty())
             {
                 for(list<ASroute>::iterator iter = m.ASlist.begin(); iter != m.ASlist.end(); ++iter) {
