@@ -228,6 +228,12 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode, bool 
 		//If there are nodes AND edges in the network
         if(numNodes && numEdges)
         {
+            if(numNodes < max(startNode, endNode))
+            {
+                numNodes = max(startNode, endNode)+1;
+            }
+
+            cout << numNodes << "--" << numEdges << endl;
 			//Build a boost graph
             localGraph = graph_t(numNodes);
             
@@ -235,6 +241,8 @@ RRES MessageResponder::localDijkstra(uint32_t startNode, uint32_t endNode, bool 
             {
                 boost::add_edge(it->first.first, it->first.second, EdgeWeight(it->second.second), localGraph);
             }
+
+            cout << boost::num_vertices(localGraph) << "--" << boost::num_edges(localGraph) << endl;
     
             localP = vector<vertex_descriptor>(boost::num_vertices(localGraph));
             localD = vector<int>(boost::num_vertices(localGraph));
